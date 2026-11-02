@@ -15,6 +15,7 @@ struct AmoxtliApp: App {
             ReadOnlyDocumentCommands()
             FolderCommands()
             SidebarCommands()
+            SidebarTabCommands()
         }
 
         WindowGroup(for: Data.self) { $bookmark in
@@ -23,5 +24,13 @@ struct AmoxtliApp: App {
         .defaultSize(width: 1320, height: 760)
         .defaultLaunchBehavior(.suppressed)
         .commandsRemoved()
+
+        Window("Bienvenida", id: WelcomeView.windowID) {
+            WelcomeView()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        .restorationBehavior(.disabled)
+        .defaultLaunchBehavior(.presented)
     }
 }

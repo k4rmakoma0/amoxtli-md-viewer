@@ -51,10 +51,13 @@ Visor de Markdown formateado para macOS 27. Gratuito y 100% open source (MIT). X
    - Escaneo recursivo con `FileManager`, SOLO .md y .markdown (extensión case-insensitive), agrupado por subcarpeta, omitiendo carpetas sin markdowns. Escaneo fuera del main actor. Orden alfabético localizado.
    - Restauración de ventanas con el bookmark.
 
+3. **Sin nada que abrir** (inicio o clic en el Dock sin ventanas): ventana de bienvenida (`Window`, `.defaultLaunchBehavior(.presented)`) con Abrir archivo… y Abrir carpeta…. Reemplaza el panel de inicio del sistema (`applicationShouldOpenUntitledFile` → `false`), que solo elige archivos. Se cierra al abrir algo.
+- Botón Abrir en el toolbar de ambas ventanas: clic abre archivo, su menú también ofrece carpeta.
+
 ## Índice (TOC)
 
 - Generado desde los headings del modelo, indentado por nivel, con ids únicos aunque se repitan títulos.
-- Sidebar izquierdo de `NavigationSplitView` en ambos modos (`ReaderSplitView`). En modo archivo solo muestra el índice; en modo carpeta, un `Picker` segmentado alterna entre índice y lista de archivos. Ocultable con el botón de sidebar del sistema y ⌃⌘S; visibilidad y pestaña persistidas con `@SceneStorage`.
+- Sidebar izquierdo de `NavigationSplitView` en ambos modos (`ReaderSplitView`). En modo archivo solo muestra el índice; en modo carpeta, un `Picker` segmentado alterna entre índice y lista de archivos. Ocultable con el botón de sidebar del sistema y ⌃⌘S; visibilidad y pestaña persistidas con `@SceneStorage`. Cada segmento tiene tooltip (`.help`), y Visualización > Mostrar índice (⌥⌘1) / Mostrar archivos (⌥⌘2) muestran el sidebar en esa pestaña.
 
 ## Estadísticas de lectura
 

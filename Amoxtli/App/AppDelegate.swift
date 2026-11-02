@@ -10,4 +10,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
         Task { await defaultAppFlow.promptAtLaunchIfNeeded() }
     }
+
+    /// The welcome window takes the place of the system's open panel, which only chooses files.
+    func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
+        false
+    }
 }

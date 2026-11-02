@@ -7,14 +7,21 @@ struct FolderBrowserView: View {
 
     @State private var links = LinkInteractionViewModel()
     @SceneStorage("sidebarTab") private var sidebarTab = SidebarTab.files
+    @SceneStorage("isSidebarPresented") private var isSidebarPresented = true
 
     var body: some View {
-        ReaderSplitView {
+        ReaderSplitView(isSidebarPresented: $isSidebarPresented) {
+            // The empty states size to fit, so without the frame the picker would sink with them.
             sidebar
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .safeAreaBar(edge: .top) { sidebarTabPicker }
         } detail: {
             detail
         }
+        .focusedSceneValue(\.sidebarTabAction, SidebarTabAction(availableTabs: SidebarTab.allCases) { tab in
+            sidebarTab = tab
+            isSidebarPresented = true
+        })
         .task(id: viewModel.selection) {
             if let selection = viewModel.selection {
                 await document.load(contentsOf: selection)
@@ -34,8 +41,11 @@ struct FolderBrowserView: View {
 
     private var sidebarTabPicker: some View {
         Picker("Barra lateral", selection: $sidebarTab) {
-            Text("Índice").tag(SidebarTab.contents)
-            Text("Archivos").tag(SidebarTab.files)
+            ForEach(SidebarTab.allCases, id: \.self) { tab in
+                Text(tab.title)
+                    .help(tab.help)
+                    .tag(tab)
+            }
         }
         .pickerStyle(.segmented)
         .labelsHidden()
@@ -71,10 +81,6 @@ struct FolderBrowserView: View {
             )
         }
     }
-}
-
-private enum SidebarTab: String {
-    case contents, files
 }
 
 private struct FolderSidebarView: View {

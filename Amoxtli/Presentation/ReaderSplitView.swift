@@ -1,12 +1,10 @@
 import SwiftUI
 
-/// Layout of both window modes: a sidebar on the left and the document on the right. Whether the
-/// sidebar shows is saved per window.
+/// Layout of both window modes: a sidebar on the left and the document on the right.
 struct ReaderSplitView<Sidebar: View, Detail: View>: View {
+    @Binding var isSidebarPresented: Bool
     @ViewBuilder let sidebar: Sidebar
     @ViewBuilder let detail: Detail
-
-    @SceneStorage("isSidebarPresented") private var isSidebarPresented = true
 
     var body: some View {
         NavigationSplitView(columnVisibility: columnVisibility) {

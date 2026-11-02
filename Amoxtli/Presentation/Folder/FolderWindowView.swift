@@ -12,6 +12,7 @@ struct FolderWindowView: View {
         content
             .navigationTitle(viewModel.folderName ?? String(localized: "Carpeta"))
             .frame(minWidth: 640, minHeight: 360)
+            .toolbar { OpenToolbarItem() }
             .task(id: bookmark) {
                 guard let bookmark else { return }
                 await viewModel.open(bookmark)
