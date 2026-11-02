@@ -11,6 +11,7 @@ final class DocumentViewModel {
 
     private(set) var state: State = .loading
     private(set) var tableOfContents: [TOCEntry] = []
+    private(set) var readingStats: ReadingStats?
     /// Changes on every load, so each loaded document starts with a fresh scroll position.
     private(set) var loadCount = 0
     @ObservationIgnored private let parser: any MarkdownParsing
@@ -43,9 +44,11 @@ final class DocumentViewModel {
         switch result {
         case .success(let document):
             tableOfContents = document.tableOfContents
+            readingStats = document.readingStats
             state = .loaded(document.model)
         case .failure(let error):
             tableOfContents = []
+            readingStats = nil
             state = .failed(error)
         }
     }
@@ -53,6 +56,7 @@ final class DocumentViewModel {
     private struct ParsedDocument: Sendable {
         let model: MarkdownModel
         let tableOfContents: [TOCEntry]
+        let readingStats: ReadingStats
     }
 
     @concurrent
@@ -67,7 +71,11 @@ final class DocumentViewModel {
     ) async -> Result<ParsedDocument, MarkdownDocumentError> {
         do {
             let model = try parser.parse(source)
-            return .success(ParsedDocument(model: model, tableOfContents: TOCBuilder.entries(for: model.blocks)))
+            return .success(ParsedDocument(
+                model: model,
+                tableOfContents: TOCBuilder.entries(for: model.blocks),
+                readingStats: ReadingStats(blocks: model.blocks)
+            ))
         } catch {
             return .failure(.unparsable)
         }

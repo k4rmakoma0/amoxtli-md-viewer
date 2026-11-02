@@ -1,32 +1,16 @@
 import SwiftUI
 
-/// A document with its table of contents, shared by the single-file and folder windows.
+/// The document pane with its reading stats, shared by the single-file and folder windows.
 struct MarkdownReaderView: View {
     let viewModel: DocumentViewModel
+    let links: LinkInteractionViewModel
     var fileURL: URL?
-
-    @State private var links = LinkInteractionViewModel()
-    @SceneStorage("isTableOfContentsPresented") private var isTableOfContentsPresented = true
 
     var body: some View {
         content
             .frame(minWidth: 480, minHeight: 360)
             .focusedSceneValue(\.shownFileURL, fileURL)
-            .inspector(isPresented: $isTableOfContentsPresented) {
-                TableOfContentsView(entries: viewModel.tableOfContents) { entry in
-                    links.scroll(toBlock: entry.blockIndex)
-                }
-                .inspectorColumnWidth(min: 200, ideal: 260, max: 400)
-            }
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Índice", systemImage: "list.bullet.indent") {
-                        isTableOfContentsPresented.toggle()
-                    }
-                    .keyboardShortcut("i", modifiers: [.command, .control])
-                    .help(isTableOfContentsPresented ? "Ocultar el índice (⌃⌘I)" : "Mostrar el índice (⌃⌘I)")
-                }
-            }
+            .safeAreaBar(edge: .bottom) { readingStats }
             .onChange(of: viewModel.tableOfContents, initial: true) { _, entries in
                 links.updateAnchors(HeadingAnchors(entries: entries))
                 links.hover(nil)
@@ -46,8 +30,15 @@ struct MarkdownReaderView: View {
             DocumentErrorView(error: error)
         }
     }
+
+    @ViewBuilder
+    private var readingStats: some View {
+        if case .loaded = viewModel.state, let stats = viewModel.readingStats {
+            ReadingStatsView(stats: stats)
+        }
+    }
 }
 
 #Preview {
-    MarkdownReaderView(viewModel: DocumentViewModel())
+    MarkdownReaderView(viewModel: DocumentViewModel(), links: LinkInteractionViewModel())
 }

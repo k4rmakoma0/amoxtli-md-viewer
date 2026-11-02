@@ -8,7 +8,8 @@ Visor de Markdown formateado para macOS 27. Gratuito y 100% open source (MIT). N
 
 - Abre archivos `.md` y `.markdown` desde Finder, Open With o ⌘O.
 - Abre carpetas con File > Open Folder… (⇧⌘O): lista sus archivos Markdown, también los de subcarpetas, agrupados por carpeta. La ventana se restaura al volver a abrir la app.
-- Índice del documento en un panel lateral que se oculta con el botón de la barra o con ⌃⌘I. Al elegir una entrada, hace scroll hasta su encabezado.
+- Barra lateral con el índice del documento. En una carpeta, un selector alterna entre el índice y la lista de archivos. Se oculta con el botón de la barra o con ⌃⌘S. Al elegir una entrada del índice, hace scroll hasta su encabezado.
+- Conteo de palabras y tiempo estimado de lectura (200 palabras por minuto) en la esquina inferior. No cuenta los bloques de código.
 - Se ofrece como visor Markdown predeterminado al iniciar, con la opción de no volver a preguntar. También se puede establecer desde el menú de la app.
 - Muestra encabezados, listas anidadas, citas, bloques de código, tablas, imágenes remotas y estilos de texto.
 - Explica los errores en la ventana: archivo vacío, UTF-8 inválido, archivo ilegible, carpeta sin Markdown o carpeta que ya no se encuentra.

@@ -47,14 +47,19 @@ Visor de Markdown formateado para macOS 27. Gratuito y 100% open source (MIT). X
 ## Modos de apertura
 
 1. **Un archivo** (.md/.markdown desde Finder, Open With o ⌘O): `DocumentGroup(viewing:)`. La ventana muestra SOLO contenido e índice. NO hay lista de archivos.
-2. **Una carpeta** (File > Open Folder…, ⇧⌘O, `NSOpenPanel` con `canChooseDirectories`): ventana propia (`WindowGroup(for:)` con security-scoped bookmark `Data` como valor). `NavigationSplitView`: sidebar con lista de archivos, detalle con el contenido.
+2. **Una carpeta** (File > Open Folder…, ⇧⌘O, `NSOpenPanel` con `canChooseDirectories`): ventana propia (`WindowGroup(for:)` con security-scoped bookmark `Data` como valor). `NavigationSplitView`: sidebar con selector segmentado Índice / Archivos, detalle con el contenido.
    - Escaneo recursivo con `FileManager`, SOLO .md y .markdown (extensión case-insensitive), agrupado por subcarpeta, omitiendo carpetas sin markdowns. Escaneo fuera del main actor. Orden alfabético localizado.
    - Restauración de ventanas con el bookmark.
 
 ## Índice (TOC)
 
 - Generado desde los headings del modelo, indentado por nivel, con ids únicos aunque se repitan títulos.
-- Panel con `.inspector(isPresented:)` en ambos modos. Ocultable con botón de toolbar y atajo de teclado; estado persistido con `@SceneStorage` o `@AppStorage`.
+- Sidebar izquierdo de `NavigationSplitView` en ambos modos (`ReaderSplitView`). En modo archivo solo muestra el índice; en modo carpeta, un `Picker` segmentado alterna entre índice y lista de archivos. Ocultable con el botón de sidebar del sistema y ⌃⌘S; visibilidad y pestaña persistidas con `@SceneStorage`.
+
+## Estadísticas de lectura
+
+- `ReadingStats` en `Domain/`: palabras de headings, párrafos, listas, citas y tablas (sin código ni imágenes), con límites de palabra del sistema. Tiempo a 200 palabras/min; menos de 200 palabras → "menos de 1 min".
+- Se muestran en un `safeAreaBar` inferior, alineado a la derecha, texto secundario.
 - Click en una entrada: scroll animado al heading (`ScrollViewReader`). Respeta Reduce Motion.
 
 ## Links
@@ -78,7 +83,7 @@ Visor de Markdown formateado para macOS 27. Gratuito y 100% open source (MIT). X
 
 ## Diseño nativo (macOS 27 / Liquid Glass)
 
-- Componentes del sistema (toolbar, `NavigationSplitView`, inspector, menús, alerts) para heredar Liquid Glass automáticamente. Prohibido simular glass con Material/blur propios en el chrome.
+- Componentes del sistema (toolbar, `NavigationSplitView`, menús, alerts) para heredar Liquid Glass automáticamente. Prohibido simular glass con Material/blur propios en el chrome.
 - El contenido NO es glass. El pill de URL y cualquier control flotante propio usan `glassEffect` dentro de `GlassEffectContainer`, con fallback sólido cuando `accessibilityReduceTransparency` esté activo.
 - Toolbar estándar, `ToolbarSpacer` para agrupar. Sin title bar custom.
 - Fuentes del sistema, colores semánticos, SF Symbols, accent color del usuario, light/dark automático.

@@ -56,6 +56,19 @@ final class DocumentViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.tableOfContents, [])
     }
 
+    func testReadingStatsComeFromLoadedDocument() async {
+        let viewModel = DocumentViewModel()
+        await viewModel.load(.success("# Uno\n\ndos tres"))
+        XCTAssertEqual(viewModel.readingStats, ReadingStats(wordCount: 3))
+    }
+
+    func testFailureClearsReadingStats() async {
+        let viewModel = DocumentViewModel()
+        await viewModel.load(.success("# Uno"))
+        await viewModel.load(.failure(.empty))
+        XCTAssertNil(viewModel.readingStats)
+    }
+
     func testEveryLoadChangesTheLoadCount() async {
         let viewModel = DocumentViewModel()
         await viewModel.load(.success("# Uno"))
