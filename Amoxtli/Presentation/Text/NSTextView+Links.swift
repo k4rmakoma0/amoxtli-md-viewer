@@ -1,7 +1,7 @@
 import AppKit
 
-/// Finding links under the pointer, shared by the formatted reader and the formatted editor.
-/// Both use TextKit 1, whose layout manager answers these questions directly.
+/// Finding links under the pointer in the formatted editor, which uses TextKit 1: its layout
+/// manager answers these questions directly.
 extension NSTextView {
     /// Asks the layout manager directly: in a visible window, `characterIndexForInsertion(at:)`
     /// returns the end of the text, so no link would ever be found.

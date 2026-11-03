@@ -8,6 +8,8 @@ import AppKit
 final class RichTextView: NSTextView {
     weak var controller: EditorController?
     weak var links: LinkInteractionViewModel?
+    /// Called when the view takes keyboard focus, before anything can be typed.
+    var onFocus: (() -> Void)?
     let styler: RichStyler
     private(set) lazy var converter = RichTextConverter(styler: styler)
 
@@ -180,7 +182,10 @@ final class RichTextView: NSTextView {
 
     override func becomeFirstResponder() -> Bool {
         let didBecome = super.becomeFirstResponder()
-        if didBecome { controller?.activate(self) }
+        if didBecome {
+            onFocus?()
+            controller?.activate(self)
+        }
         return didBecome
     }
 

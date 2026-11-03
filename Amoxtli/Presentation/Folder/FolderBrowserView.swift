@@ -64,7 +64,6 @@ struct FolderBrowserView: View {
             )
         } else {
             TableOfContentsView(entries: document.tableOfContents) { entry in
-                links.scroll(toBlock: entry.blockIndex)
                 editor.revealHeading(entry, among: document.tableOfContents)
             }
         }

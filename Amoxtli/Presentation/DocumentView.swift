@@ -13,7 +13,6 @@ struct DocumentView: View {
     var body: some View {
         ReaderSplitView(isSidebarPresented: $isSidebarPresented) {
             TableOfContentsView(entries: viewModel.tableOfContents) { entry in
-                links.scroll(toBlock: entry.blockIndex)
                 editor.revealHeading(entry, among: viewModel.tableOfContents)
             }
         } detail: {

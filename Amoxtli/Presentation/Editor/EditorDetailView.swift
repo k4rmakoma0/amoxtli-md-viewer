@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// The document pane of both windows: the source, the formatted document or both, with the
-/// reading stats below. Both editors write to the same Markdown text. In the split view, the
-/// formatted side is still read-only and follows the text a moment after typing stops.
+/// The document pane of both windows: the source, the formatted document or both side by side,
+/// with the reading stats below. Both editors write to the same Markdown text, so in the split
+/// view either side can be edited and the other follows.
 struct EditorDetailView: View {
     @Binding var mode: EditorMode
     @Binding var text: String
@@ -41,21 +41,29 @@ struct EditorDetailView: View {
 
     @ViewBuilder
     private var content: some View {
-        switch mode {
-        case .source:
-            source
-        case .formatted:
-            RichEditor(text: $text, controller: editor, links: links, tableOfContents: viewModel.tableOfContents)
-                .overlay { LinkStatusOverlay() }
-                .environment(links)
-        case .split:
-            HSplitView {
+        // Another document gets editors of its own, starting at the top with no undo history.
+        Group {
+            switch mode {
+            case .source:
                 source
-                    .frame(minWidth: 280)
-                MarkdownReaderView(viewModel: viewModel, links: links)
-                    .frame(minWidth: 280)
+            case .formatted:
+                formatted
+            case .split:
+                HSplitView {
+                    source
+                        .frame(minWidth: 280)
+                    formatted
+                        .frame(minWidth: 280)
+                }
             }
         }
+        .id(documentID)
+    }
+
+    private var formatted: some View {
+        RichEditor(text: $text, controller: editor, links: links, tableOfContents: viewModel.tableOfContents)
+            .overlay { LinkStatusOverlay() }
+            .environment(links)
     }
 
     private var source: some View {

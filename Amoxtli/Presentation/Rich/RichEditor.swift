@@ -23,6 +23,9 @@ struct RichEditor: NSViewRepresentable {
         textView.delegate = context.coordinator
         textView.links = links
         textView.controller = controller
+        textView.onFocus = { [weak coordinator = context.coordinator, weak textView] in
+            if let coordinator, let textView { coordinator.showLatest(in: textView) }
+        }
         textView.styler.typography = typography
         context.coordinator.undoManager = undoManager
         context.coordinator.show(text, in: textView)
@@ -49,7 +52,7 @@ struct RichEditor: NSViewRepresentable {
         textView.links = links
         textView.linkTextAttributes?[.underlineStyle] = contrast == .increased ? NSUnderlineStyle.single.rawValue : 0
         if text != coordinator.shownText {
-            coordinator.show(text, in: textView)
+            coordinator.scheduleShow(text, in: textView)
         }
         if typography != textView.styler.typography {
             coordinator.apply(typography, to: textView)
@@ -81,21 +84,63 @@ struct RichEditor: NSViewRepresentable {
             self.text = text
         }
 
+        private var pendingShow: Task<Void, Never>?
+        private let showDelay: Duration = .milliseconds(200)
+
         func show(_ markdown: String, in textView: RichTextView) {
+            pendingShow?.cancel()
             shownText = markdown
             let model = (try? MarkdownParser().parse(markdown)) ?? MarkdownModel(blocks: [])
+            rebuild(textView) { textView.show(RichDocumentBuilder.paragraphs(from: model)) }
+        }
+
+        /// Text that changed elsewhere, as typing in the source beside this view. The whole
+        /// document is rebuilt, so it waits for a pause in the typing.
+        func scheduleShow(_ markdown: String, in textView: RichTextView) {
+            pendingShow?.cancel()
+            pendingShow = Task { @MainActor [weak self, weak textView] in
+                try? await Task.sleep(for: self?.showDelay ?? .zero)
+                guard !Task.isCancelled, let self, let textView else { return }
+                self.show(markdown, in: textView)
+            }
+        }
+
+        /// Catches up with the document before this view is typed into, so typing never starts
+        /// from an older version and overwrites what was written elsewhere. The binding is read
+        /// directly, since SwiftUI may not have passed the latest text down yet.
+        @discardableResult
+        func showLatest(in textView: RichTextView) -> Bool {
+            let latest = text.wrappedValue
+            guard latest != shownText else { return false }
+            show(latest, in: textView)
+            return true
+        }
+
+        /// An edit made on an outdated document is refused; the view shows the current one instead.
+        func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
+            guard let textView = textView as? RichTextView else { return true }
+            return !showLatest(in: textView)
+        }
+
+        /// Keeps the scroll position and the caret where they were, as far as the new text allows.
+        private func rebuild(_ textView: RichTextView, _ change: () -> Void) {
             let selection = textView.selectedRange()
-            textView.show(RichDocumentBuilder.paragraphs(from: model))
+            let clipView = textView.enclosingScrollView?.contentView
+            let origin = clipView?.bounds.origin
+            change()
             textView.setSelectedRange(NSRange(location: min(selection.location, textView.string.utf16.count), length: 0))
+            if let clipView, let origin, let layoutManager = textView.layoutManager, let container = textView.textContainer {
+                layoutManager.ensureLayout(for: container)
+                clipView.scroll(to: origin)
+                textView.enclosingScrollView?.reflectScrolledClipView(clipView)
+            }
         }
 
         /// Rebuilds the text in the new typography, keeping the document and the selection.
         func apply(_ typography: Typography, to textView: RichTextView) {
             let paragraphs = textView.paragraphs
-            let selection = textView.selectedRange()
             textView.styler.typography = typography
-            textView.show(paragraphs)
-            textView.setSelectedRange(NSRange(location: min(selection.location, textView.string.utf16.count), length: 0))
+            rebuild(textView) { textView.show(paragraphs) }
         }
 
         func textDidChange(_ notification: Notification) {

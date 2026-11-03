@@ -21,6 +21,9 @@ struct SourceEditor: NSViewRepresentable {
         textView.typingAttributes = context.coordinator.highlighter.baseAttributes
         context.coordinator.undoManager = undoManager
         context.coordinator.show(text, in: textView)
+        textView.onFocus = { [weak coordinator = context.coordinator, weak textView] in
+            if let coordinator, let textView { coordinator.showLatest(in: textView) }
+        }
 
         let scrollView = NSScrollView()
         scrollView.hasVerticalScroller = true
@@ -69,7 +72,7 @@ struct SourceEditor: NSViewRepresentable {
         /// The highlighter styles the new text as the storage reports the change.
         func show(_ newText: String, in textView: SourceTextView) {
             shownText = newText
-            textView.replaceAll(with: newText)
+            textView.show(newText)
         }
 
         func apply(_ typography: Typography, to textView: SourceTextView) {
@@ -78,6 +81,23 @@ struct SourceEditor: NSViewRepresentable {
             if let storage = textView.textStorage {
                 highlighter.restyle(storage)
             }
+        }
+
+        /// Catches up with the document before this view is typed into, so typing never starts
+        /// from an older version and overwrites what was written in the formatted editor. The
+        /// binding is read directly, since SwiftUI may not have passed the latest text down yet.
+        @discardableResult
+        func showLatest(in textView: SourceTextView) -> Bool {
+            let latest = text.wrappedValue
+            guard latest != shownText else { return false }
+            show(latest, in: textView)
+            return true
+        }
+
+        /// An edit made on an outdated document is refused; the view shows the current one instead.
+        func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
+            guard let textView = textView as? SourceTextView else { return true }
+            return !showLatest(in: textView)
         }
 
         func textDidChange(_ notification: Notification) {

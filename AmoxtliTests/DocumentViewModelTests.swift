@@ -69,14 +69,6 @@ final class DocumentViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.readingStats)
     }
 
-    func testEveryLoadChangesTheLoadCount() async {
-        let viewModel = DocumentViewModel()
-        await viewModel.load(.success("# Uno"))
-        let first = viewModel.loadCount
-        await viewModel.load(.success("# Uno"))
-        XCTAssertNotEqual(viewModel.loadCount, first)
-    }
-
     func testEmptyTextIsAnEmptyDocument() async {
         let viewModel = DocumentViewModel()
         await viewModel.load(.success(" \n"))
@@ -90,19 +82,10 @@ final class DocumentViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.tableOfContents.map(\.title), ["Uno", "Dos"])
     }
 
-    func testUpdateKeepsTheScrollPosition() async {
-        let viewModel = DocumentViewModel()
-        await viewModel.load(.success("# Uno"))
-        let loadCount = viewModel.loadCount
-        await viewModel.update("# Uno editado")
-        XCTAssertEqual(viewModel.loadCount, loadCount)
-    }
-
     func testUpdateBeforeAnyLoadShowsTheDocument() async throws {
         let viewModel = DocumentViewModel()
         await viewModel.update("párrafo")
         XCTAssertEqual(viewModel.state, .loaded(try MarkdownParser().parse("párrafo")))
-        XCTAssertEqual(viewModel.loadCount, 1)
     }
 
     func testUpdateFromEmptyShowsTheDocument() async {

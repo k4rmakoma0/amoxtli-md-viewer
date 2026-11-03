@@ -4,6 +4,8 @@ import AppKit
 /// syntax highlighting styles, nor to the selection the formatting tools act on.
 final class SourceTextView: NSTextView {
     weak var controller: EditorController?
+    /// Called when the view takes keyboard focus, before anything can be typed.
+    var onFocus: (() -> Void)?
 
     private let readingWidth: CGFloat = 800
     private let minimumMargin: CGFloat = 32
@@ -43,18 +45,27 @@ final class SourceTextView: NSTextView {
         setAccessibilityLabel(String(localized: "Markdown"))
     }
 
-    /// Replaces everything, as when another file is shown. Undo can't reach the previous text.
-    func replaceAll(with text: String) {
+    /// Shows text that changed elsewhere, as an edit in the formatted editor. Only what differs
+    /// is replaced, so the selection, the scroll position and the highlighting of the rest stay.
+    /// Its own undo steps no longer match the text, so they go.
+    func show(_ text: String) {
         guard let textStorage else { return }
-        textStorage.replaceCharacters(in: NSRange(location: 0, length: textStorage.length), with: text)
-        setSelectedRange(NSRange(location: 0, length: 0))
+        let difference = TextDifference(from: textStorage.string, to: text)
+        guard !difference.isEmpty else { return }
+        let selection = difference.adjusting(selectedRange())
+        textStorage.replaceCharacters(in: difference.range, with: difference.replacement)
+        let location = min(selection.location, textStorage.length)
+        setSelectedRange(NSRange(location: location, length: min(selection.length, textStorage.length - location)))
         undoManager?.removeAllActions(withTarget: textStorage)
         undoManager?.removeAllActions(withTarget: self)
     }
 
     override func becomeFirstResponder() -> Bool {
         let didBecome = super.becomeFirstResponder()
-        if didBecome { controller?.activate(self) }
+        if didBecome {
+            onFocus?()
+            controller?.activate(self)
+        }
         return didBecome
     }
 

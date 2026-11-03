@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-/// Turns the text being edited into the rendered model, its table of contents and its stats.
+/// Turns the text being edited into its table of contents and its reading stats.
 @Observable
 final class DocumentViewModel {
     enum State: Equatable {
@@ -13,9 +13,6 @@ final class DocumentViewModel {
     private(set) var state: State = .loading
     private(set) var tableOfContents: [TOCEntry] = []
     private(set) var readingStats: ReadingStats?
-    /// Changes on every load, so each loaded document starts with a fresh scroll position.
-    /// Edits go through `update`, which keeps it, so typing doesn't jump back to the top.
-    private(set) var loadCount = 0
     @ObservationIgnored private var renderedSource: String?
     @ObservationIgnored private let parser: any MarkdownParsing
 
@@ -23,16 +20,14 @@ final class DocumentViewModel {
         self.parser = parser
     }
 
-    /// Shows a newly opened document from the top.
+    /// Reads a newly opened document.
     func load(_ content: Result<String, MarkdownDocumentError>) async {
         state = .loading
         renderedSource = nil
         switch content {
         case .success(let source):
             await render(source)
-            if !Task.isCancelled { loadCount += 1 }
         case .failure(let error):
-            loadCount += 1
             apply(.failure(error))
         }
     }
@@ -41,9 +36,7 @@ final class DocumentViewModel {
     /// one is ready, and does nothing if the text didn't change.
     func update(_ source: String) async {
         guard source != renderedSource else { return }
-        let isFirstRender = renderedSource == nil
         await render(source)
-        if isFirstRender, !Task.isCancelled { loadCount += 1 }
     }
 
     private func render(_ source: String) async {
