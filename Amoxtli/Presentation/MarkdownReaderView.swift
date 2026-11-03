@@ -4,8 +4,6 @@ import SwiftUI
 struct MarkdownReaderView: View {
     let viewModel: DocumentViewModel
     let links: LinkInteractionViewModel
-    /// Offered on an empty document, which has nothing to show until something is written.
-    var onStartWriting: (() -> Void)?
 
     var body: some View {
         switch viewModel.state {
@@ -27,10 +25,6 @@ struct MarkdownReaderView: View {
             Label("Documento vacío", systemImage: "doc")
         } description: {
             Text("Escribe en Markdown para ver aquí el documento con formato.")
-        } actions: {
-            if let onStartWriting {
-                Button("Escribir", action: onStartWriting)
-            }
         }
     }
 }

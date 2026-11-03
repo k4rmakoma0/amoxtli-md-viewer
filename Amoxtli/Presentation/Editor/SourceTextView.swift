@@ -3,7 +3,7 @@ import AppKit
 /// AppKit is required here: SwiftUI's `TextEditor` has no access to the text storage, which the
 /// syntax highlighting styles, nor to the selection the formatting tools act on.
 final class SourceTextView: NSTextView {
-    weak var controller: SourceEditorController?
+    weak var controller: EditorController?
 
     private let readingWidth: CGFloat = 800
     private let minimumMargin: CGFloat = 32
@@ -52,6 +52,12 @@ final class SourceTextView: NSTextView {
         undoManager?.removeAllActions(withTarget: self)
     }
 
+    override func becomeFirstResponder() -> Bool {
+        let didBecome = super.becomeFirstResponder()
+        if didBecome { controller?.activate(self) }
+        return didBecome
+    }
+
     /// Applies a formatting tool's edit as one undoable step.
     func apply(_ edit: TextEdit, actionName: String) {
         guard let textStorage, isEditable, shouldChangeText(in: edit.range, replacementString: edit.replacement) else { return }
@@ -76,45 +82,27 @@ final class SourceTextView: NSTextView {
     // MARK: - Context menu
 
     override func menu(for event: NSEvent) -> NSMenu? {
-        let menu = NSMenu()
-        menu.allowsContextMenuPlugIns = false
-        menu.addItem(standardItem(String(localized: "Cortar"), action: #selector(cut(_:))))
-        menu.addItem(standardItem(String(localized: "Copiar"), action: #selector(copy(_:))))
-        menu.addItem(standardItem(String(localized: "Pegar"), action: #selector(paste(_:))))
-        menu.addItem(.separator())
-        menu.addItem(formatItem())
-        menu.addItem(.separator())
-        menu.addItem(standardItem(String(localized: "Seleccionar todo"), action: #selector(selectAll(_:))))
-        return menu
+        EditingContextMenu.make(for: self, controller: controller)
+    }
+}
+
+extension SourceTextView: FormattingTarget {
+    var selectedText: String {
+        (string as NSString).substring(with: selectedRange())
     }
 
-    private func standardItem(_ title: String, action: Selector) -> NSMenuItem {
-        let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
-        item.target = self
-        return item
+    func apply(_ command: FormatCommand, actionName: String) {
+        apply(MarkdownFormatter.edit(for: command, in: string, selection: selectedRange()), actionName: actionName)
     }
 
-    private func formatItem() -> NSMenuItem {
-        let submenu = NSMenu()
-        for (index, group) in FormatTool.menuGroups.enumerated() {
-            if index > 0 { submenu.addItem(.separator()) }
-            for tool in group {
-                submenu.addItem(toolItem(tool))
-            }
-        }
-        let item = NSMenuItem(title: String(localized: "Formato"), action: nil, keyEquivalent: "")
-        item.submenu = submenu
-        return item
+    func revealHeading(_ entry: TOCEntry, among entries: [TOCEntry]) {
+        guard let location = SourceHeadingLocator.location(of: entry, among: entries, in: string) else { return }
+        let range = NSRange(location: location, length: 0)
+        setSelectedRange(range)
+        scrollRangeToVisible(range)
     }
 
-    private func toolItem(_ tool: FormatTool) -> NSMenuItem {
-        let action = MenuAction { [weak controller] in
-            controller?.perform(tool)
-        }
-        let item = NSMenuItem(title: tool.title, action: #selector(MenuAction.invoke), keyEquivalent: "")
-        item.target = action
-        item.representedObject = action
-        item.image = NSImage(systemSymbolName: tool.systemImage, accessibilityDescription: nil)
-        return item
+    func focusEditor() {
+        window?.makeFirstResponder(self)
     }
 }

@@ -1,0 +1,190 @@
+import AppKit
+import XCTest
+@testable import Amoxtli
+
+@MainActor
+final class RichTextViewTests: XCTestCase {
+    private func makeView(_ markdown: String) throws -> RichTextView {
+        let view = RichTextView.make()
+        view.frame = NSRect(x: 0, y: 0, width: 600, height: 400)
+        view.show(RichDocumentBuilder.paragraphs(from: try MarkdownParser().parse(markdown)))
+        return view
+    }
+
+    private func markdown(of view: RichTextView) -> String {
+        MarkdownSerializer.markdown(from: view.paragraphs)
+    }
+
+    /// Puts the caret right after the first occurrence of `text`.
+    private func placeCaret(after text: String, in view: RichTextView) {
+        let found = (view.string as NSString).range(of: text)
+        view.setSelectedRange(NSRange(location: NSMaxRange(found), length: 0))
+    }
+
+    private func select(_ text: String, in view: RichTextView) {
+        view.setSelectedRange((view.string as NSString).range(of: text))
+    }
+
+    // MARK: - Conversion
+
+    func testParagraphsSurviveTheTextView() throws {
+        let source = "# Título\n\nTexto **fuerte** y [enlace](https://a.b).\n\n- uno\n  - dos\n\n> cita\n\n```\ncódigo\n```\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n---\n"
+        let paragraphs = RichDocumentBuilder.paragraphs(from: try MarkdownParser().parse(source))
+        let view = RichTextView.make()
+        view.show(paragraphs)
+        XCTAssertEqual(view.paragraphs, paragraphs)
+    }
+
+    func testNoMarkdownSyntaxIsShown() throws {
+        let view = try makeView("# Título\n\n**fuerte** y `código`\n\n- uno")
+        XCTAssertEqual(view.string, "Título\nfuerte y código\nuno")
+    }
+
+    // MARK: - Return
+
+    func testReturnInListStartsANewItem() throws {
+        let view = try makeView("- uno")
+        placeCaret(after: "uno", in: view)
+        view.insertNewline(nil)
+        view.insertText("dos", replacementRange: view.selectedRange())
+        XCTAssertEqual(markdown(of: view), "- uno\n- dos\n")
+    }
+
+    func testReturnOnEmptyItemLeavesTheList() throws {
+        let view = try makeView("- uno")
+        placeCaret(after: "uno", in: view)
+        view.insertNewline(nil)
+        view.insertNewline(nil)
+        view.insertText("fuera", replacementRange: view.selectedRange())
+        XCTAssertEqual(markdown(of: view), "- uno\n\nfuera\n")
+    }
+
+    func testReturnAtEndOfHeadingContinuesWithBodyText() throws {
+        let view = try makeView("# Título\n\nTexto")
+        placeCaret(after: "Título", in: view)
+        view.insertNewline(nil)
+        view.insertText("nuevo", replacementRange: view.selectedRange())
+        XCTAssertEqual(markdown(of: view), "# Título\n\nnuevo\n\nTexto\n")
+    }
+
+    func testReturnInTableMovesToTheNextCell() throws {
+        let view = try makeView("| A | B |\n|---|---|\n| 1 | 2 |")
+        placeCaret(after: "A", in: view)
+        view.insertNewline(nil)
+        XCTAssertEqual((view.string as NSString).substring(with: view.selectedRange()), "B")
+    }
+
+    // MARK: - Delete
+
+    func testDeleteAtStartOfItemRemovesTheBullet() throws {
+        let view = try makeView("Texto\n\n- uno")
+        placeCaret(after: "\n", in: view)
+        view.deleteBackward(nil)
+        XCTAssertEqual(markdown(of: view), "Texto\n\nuno\n")
+    }
+
+    func testDeleteAtStartOfHeadingMakesItBodyText() throws {
+        let view = try makeView("Texto\n\n## Título")
+        placeCaret(after: "\n", in: view)
+        view.deleteBackward(nil)
+        XCTAssertEqual(markdown(of: view), "Texto\n\nTítulo\n")
+    }
+
+    func testDeleteJoinsParagraphsKeepingTheFirstOnesKind() throws {
+        let view = try makeView("# Título\n\nTexto")
+        placeCaret(after: "\n", in: view)
+        view.deleteBackward(nil)
+        XCTAssertEqual(markdown(of: view), "# TítuloTexto\n")
+    }
+
+    // MARK: - Tab
+
+    func testTabNestsAnItemUnderTheOneAbove() throws {
+        let view = try makeView("- uno\n- dos")
+        placeCaret(after: "do", in: view)
+        view.insertTab(nil)
+        XCTAssertEqual(markdown(of: view), "- uno\n  - dos\n")
+        view.insertBacktab(nil)
+        XCTAssertEqual(markdown(of: view), "- uno\n- dos\n")
+    }
+
+    // MARK: - Tools
+
+    func testBoldWritesMarkdown() throws {
+        let view = try makeView("Hola mundo")
+        select("mundo", in: view)
+        view.apply(.bold, actionName: "")
+        XCTAssertEqual(markdown(of: view), "Hola **mundo**\n")
+        view.apply(.bold, actionName: "")
+        XCTAssertEqual(markdown(of: view), "Hola mundo\n")
+    }
+
+    func testBoldWithoutSelectionAppliesToTyping() throws {
+        let view = try makeView("Hola")
+        placeCaret(after: "Hola", in: view)
+        view.apply(.bold, actionName: "")
+        view.insertText(" mundo", replacementRange: view.selectedRange())
+        XCTAssertEqual(markdown(of: view), "Hola **mundo**\n")
+    }
+
+    func testHeadingToolTogglesTheParagraph() throws {
+        let view = try makeView("Título")
+        placeCaret(after: "Tít", in: view)
+        view.apply(.heading(2), actionName: "")
+        XCTAssertEqual(markdown(of: view), "## Título\n")
+        view.apply(.heading(2), actionName: "")
+        XCTAssertEqual(markdown(of: view), "Título\n")
+    }
+
+    func testListToolsSwitchAndRemove() throws {
+        let view = try makeView("uno\n\ndos")
+        view.selectAll(nil)
+        view.apply(.bulletList, actionName: "")
+        XCTAssertEqual(markdown(of: view), "- uno\n- dos\n")
+        view.apply(.numberedList, actionName: "")
+        XCTAssertEqual(markdown(of: view), "1. uno\n2. dos\n")
+        view.apply(.numberedList, actionName: "")
+        XCTAssertEqual(markdown(of: view), "uno\n\ndos\n")
+    }
+
+    func testQuoteAndCodeBlockTools() throws {
+        let view = try makeView("cita")
+        view.selectAll(nil)
+        view.apply(.quote, actionName: "")
+        XCTAssertEqual(markdown(of: view), "> cita\n")
+        view.apply(.quote, actionName: "")
+        view.apply(.codeBlock, actionName: "")
+        XCTAssertEqual(markdown(of: view), "```\ncita\n```\n")
+    }
+
+    func testLinkToolLinksTheSelection() throws {
+        let view = try makeView("Visita Amoxtli")
+        select("Amoxtli", in: view)
+        view.apply(.link(text: "Amoxtli", destination: "https://amoxtli.dev"), actionName: "")
+        XCTAssertEqual(markdown(of: view), "Visita [Amoxtli](https://amoxtli.dev)\n")
+    }
+
+    func testTableToolInsertsAnEditableTable() throws {
+        let view = try makeView("Texto")
+        placeCaret(after: "Texto", in: view)
+        view.apply(.table, actionName: "")
+        view.insertText("Nombre", replacementRange: view.selectedRange())
+        let header = String(localized: "Columna 2")
+        XCTAssertEqual(markdown(of: view), "Texto\n\n| Nombre | \(header) |\n| --- | --- |\n|  |  |\n")
+    }
+
+    func testRuleToolInsertsADivider() throws {
+        let view = try makeView("Texto")
+        placeCaret(after: "Texto", in: view)
+        view.apply(.horizontalRule, actionName: "")
+        view.insertText("después", replacementRange: view.selectedRange())
+        XCTAssertEqual(markdown(of: view), "Texto\n\n---\n\ndespués\n")
+    }
+
+    func testTypedSyntaxStaysText() throws {
+        let view = try makeView("")
+        view.insertText("# no es título *ni cursiva*", replacementRange: view.selectedRange())
+        let written = markdown(of: view)
+        XCTAssertEqual(try MarkdownParser().parse(written).blocks, [.paragraph(InlineText(runs: [InlineRun(text: "# no es título *ni cursiva*")]))])
+    }
+}

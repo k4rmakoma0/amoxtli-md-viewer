@@ -50,6 +50,6 @@ enum EditorMode: String, CaseIterable {
 extension FocusedValues {
     /// The mode of the active window, for the View menu.
     @Entry var editorMode: Binding<EditorMode>?
-    /// The source editor of the active window, for the Format menu.
-    @Entry var sourceEditor: SourceEditorController?
+    /// The editors of the active window, for the Format menu.
+    @Entry var editorController: EditorController?
 }

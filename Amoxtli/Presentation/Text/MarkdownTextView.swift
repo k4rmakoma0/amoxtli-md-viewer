@@ -80,49 +80,7 @@ final class MarkdownTextView: NSTextView {
     /// Asks the layout manager directly: in a visible window, `characterIndexForInsertion(at:)`
     /// returns the end of the text, so no link would ever be found.
     func link(at point: NSPoint) -> URL? {
-        characterIndex(at: point).flatMap(link(atCharacter:))
-    }
-
-    private func characterIndex(at point: NSPoint) -> Int? {
-        guard let layoutManager, let textContainer, let textStorage else { return nil }
-        let containerPoint = NSPoint(x: point.x - textContainerOrigin.x, y: point.y - textContainerOrigin.y)
-        let index = layoutManager.characterIndex(
-            for: containerPoint,
-            in: textContainer,
-            fractionOfDistanceBetweenInsertionPoints: nil
-        )
-        // The layout manager answers with the nearest character, even for a point beside the line.
-        guard index < textStorage.length, rect(ofCharacterAt: index).contains(point) else { return nil }
-        return index
-    }
-
-    private func link(atCharacter index: Int) -> URL? {
-        Self.url(from: textStorage?.attribute(.link, at: index, effectiveRange: nil))
-    }
-
-    /// The whole text of the link, even when part of it has its own style.
-    private func linkText(atCharacter index: Int) -> String? {
-        guard let textStorage, index < textStorage.length else { return nil }
-        var range = NSRange()
-        let fullRange = NSRange(location: 0, length: textStorage.length)
-        _ = textStorage.attribute(.link, at: index, longestEffectiveRange: &range, in: fullRange)
-        return (textStorage.string as NSString).substring(with: range)
-    }
-
-    private func rect(ofCharacterAt index: Int) -> NSRect {
-        guard let layoutManager, let textContainer else { return .zero }
-        let characters = NSRange(location: index, length: 1)
-        let glyphs = layoutManager.glyphRange(forCharacterRange: characters, actualCharacterRange: nil)
-        return layoutManager.boundingRect(forGlyphRange: glyphs, in: textContainer)
-            .offsetBy(dx: textContainerOrigin.x, dy: textContainerOrigin.y)
-    }
-
-    private static func url(from attribute: Any?) -> URL? {
-        switch attribute {
-        case let url as URL: url
-        case let string as String: URL(string: string)
-        default: nil
-        }
+        linkCharacterIndex(at: point).flatMap(link(atCharacter:))
     }
 
     // MARK: - Hover
@@ -158,7 +116,7 @@ final class MarkdownTextView: NSTextView {
     // MARK: - Activation
 
     override func clicked(onLink link: Any, at charIndex: Int) {
-        guard let url = Self.url(from: link) else { return }
+        guard let url = NSTextView.linkURL(from: link) else { return }
         activate(url, displayedText: linkText(atCharacter: charIndex))
     }
 
@@ -171,7 +129,7 @@ final class MarkdownTextView: NSTextView {
 
     override func menu(for event: NSEvent) -> NSMenu? {
         let point = convert(event.locationInWindow, from: nil)
-        if let links, let index = characterIndex(at: point), let url = link(atCharacter: index) {
+        if let links, let index = linkCharacterIndex(at: point), let url = link(atCharacter: index) {
             let model = links.menuModel(for: url, displayedText: linkText(atCharacter: index))
             return LinkContextMenu.make(model: model, links: links)
         }
@@ -230,7 +188,7 @@ final class MarkdownTextView: NSTextView {
 
     private var selectedLink: URL? {
         guard let textStorage, selectedRange().length > 0 else { return nil }
-        return Self.url(from: textStorage.attribute(.link, at: selectedRange().location, effectiveRange: nil))
+        return NSTextView.linkURL(from: textStorage.attribute(.link, at: selectedRange().location, effectiveRange: nil))
     }
 
     private func selectLink(forward: Bool) -> Bool {

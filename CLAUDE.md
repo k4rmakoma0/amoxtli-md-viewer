@@ -63,13 +63,20 @@ Visor y editor de Markdown para macOS 27, pensado también para quien no es prog
 
 ## Edición
 
-- Modos por ventana (`@SceneStorage("editorMode")`): **Fuente** (Markdown con resaltado), **Formato** (render; editable en la fase 7) y **Dividido** (`HSplitView`). Selector segmentado al inicio del toolbar (junto a Abrir, para que no se vaya al menú »); Visualización > Mostrar fuente / con formato / dividido (⌃⌘1–3).
+- Modos por ventana (`@SceneStorage("editorMode")`): **Fuente** (Markdown con resaltado), **Formato** (WYSIWYG editable) y **Dividido** (`HSplitView`; el lado con formato es el render de solo lectura hasta la fase 8). Selector segmentado al inicio del toolbar (junto a Abrir, para que no se vaya al menú »); Visualización > Mostrar fuente / con formato / dividido (⌃⌘1–3).
 - El texto Markdown es siempre la fuente de verdad. El editor de Fuente es una subclase de `NSTextView` (TextKit 2, `isRichText = false`, sin sustituciones automáticas que rompan la sintaxis) en un `NSViewRepresentable`.
 - Undo: el text view usa el undo manager del documento (`undoManager(for:)`), así escribir marca el documento como editado.
 - Resaltado incremental: `MarkdownSyntaxScanner` (`Domain/`) escanea solo las líneas editadas desde `textStorage(_:willProcessEditing:)`; si la edición abre o cierra un bloque de código, re-escanea lo que sigue.
 - La vista con formato se re-renderiza 250 ms después de la última edición (`DocumentViewModel.update`), sin volver arriba. El índice funciona en ambos lados (`SourceHeadingLocator`).
-- Herramientas de formato (`FormatTool` → `FormatCommand` → `MarkdownFormatter` puro en `Domain/`): Texto/Título 1–6 (⌘7, ⌘1–⌘6), negrita ⌘B, cursiva ⌘I, subrayado ⌘U (`<u>…</u>`), tachado ⇧⌘X, código ⌘E, cita ⌘', viñetas ⇧⌘8, numerada ⇧⌘7, enlace ⌘K (hoja con texto y dirección, `LinkInput` normaliza), bloque de código ⌥⌘C, tabla, línea divisoria. Funcionan como interruptor y cada una es un paso de undo.
-- Viven en tres lugares: toolbar personalizable (`.toolbar(id:)`), menú Formato y submenú Formato del clic derecho (Cortar, Copiar, Pegar, Formato ▸, Seleccionar todo). Deshabilitadas si no hay editor de Fuente en pantalla.
+- Formato WYSIWYG (`Presentation/Rich/`): `RichTextView`, subclase de `NSTextView` con TextKit 1 (necesario para `NSTextTable`). Nunca muestra sintaxis.
+  - Modelo plano en `Domain/RichDocument.swift`: `RichParagraph` (bloque + contenedores quote/listItem con ids + runs). `RichDocumentBuilder` lo arma desde `MarkdownModel`; `MarkdownSerializer` lo escribe como Markdown canónico (`-`, `**`, `*`, fences, escapes mínimos). Garantía: `parse(serialize(x)) == parse(x)`, cubierta por tests de ida y vuelta.
+  - En el texto, cada párrafo lleva `.richParagraph` (`RichParagraphKind`) y cada run `.inlineStyle`; las fuentes y el estilo de párrafo se derivan de ahí (`RichStyler`). Tras cada edición, cada párrafo toma el tipo de su primer carácter y se re-estiliza con sus vecinos (`RichTextNormalizer`, en `didChangeText`).
+  - `RichLayoutManager` dibuja viñetas/números (se renumeran solos), la barra de las citas y el fondo del código. Línea divisoria e imágenes son adjuntos; las imágenes remotas cargan en segundo plano.
+  - Solo se serializa al editar en Formato: abrir o leer no reescribe el archivo. La primera edición deja el archivo en forma canónica.
+  - Teclas como en Pages: Return en lista crea ítem, en ítem vacío sale de la lista, al final de un título sigue texto normal; Borrar al inicio quita viñeta/cita/título antes de unir; Tab/⇧Tab anidan y desanidan ítems y en tablas cambian de celda. Pegar es siempre texto plano.
+  - Tablas editables por celda; agregar o quitar filas y columnas se hace en Fuente.
+- Herramientas de formato (`FormatTool` → `FormatCommand`; en Fuente, `MarkdownFormatter` puro en `Domain/`; en Formato, `RichTextView+Formatting`; `EditorController` las manda al editor activo vía `FormattingTarget`): Texto/Título 1–6 (⌘7, ⌘1–⌘6), negrita ⌘B, cursiva ⌘I, subrayado ⌘U (`<u>…</u>`), tachado ⇧⌘X, código ⌘E, cita ⌘', viñetas ⇧⌘8, numerada ⇧⌘7, enlace ⌘K (hoja con texto y dirección, `LinkInput` normaliza), bloque de código ⌥⌘C, tabla, línea divisoria. Funcionan como interruptor y cada una es un paso de undo.
+- Viven en tres lugares: toolbar personalizable (`.toolbar(id:)`), menú Formato y submenú Formato del clic derecho (`EditingContextMenu`: Cortar, Copiar, Pegar, Formato ▸, Seleccionar todo). Deshabilitadas si no hay editor en pantalla.
 - Tipografía global (`@AppStorage`, `TypographyPreferences`): tipo de letra curado (`ReadingFont`: Sistema, Serif/New York, Monoespaciada, Redondeada, vía `NSFontDescriptor.SystemDesign`) y tamaño por pasos (`TextSize`, 10–32 pt, estándar 13, valores guardados se ajustan al paso más cercano). Se aplica a Fuente y a Formato por el environment `\.typography`; títulos escalan con el cuerpo y el código siempre es monoespaciado. Menú Aa en el toolbar y en Visualización: Aumentar ⌘+, Reducir ⌘−, Tamaño normal ⌘0.
 - Modo carpeta: `FolderFileEditor` guarda 1 s después de la última edición, al cambiar de archivo, al cerrar la ventana y al salir. Escritura atómica. Si falla, alert explicando permisos.
 
@@ -92,7 +99,7 @@ Visor y editor de Markdown para macOS 27, pensado también para quien no es prog
   - Abrir en navegador predeterminado (resolver con `NSWorkspace.shared.urlForApplication(toOpen:)` y mostrar su nombre)
   - Abrir con ▸ submenú con las apps de `NSWorkspace.shared.urlsForApplications(toOpen:)`, con icono (`NSWorkspace.shared.icon(forFile:)`) y nombre; la predeterminada marcada; abrir con `NSWorkspace.shared.open(_:withApplicationAt:configuration:)`
   - Copiar enlace
-- Menú contextual sobre texto seleccionado en la vista con formato (solo lectura hasta la fase 7): Copiar, Seleccionar todo.
+- Menú contextual sobre texto seleccionado en el render de solo lectura (lado derecho de Dividido): Copiar, Seleccionar todo. En los editores, `EditingContextMenu`. La detección de links bajo el puntero es compartida (`NSTextView+Links`).
 - **Decision gate:** antes de implementar, haz un spike mínimo y verifica si SwiftUI `Text` expone hover por link y menú contextual por link. Si NO, renderiza los bloques de texto con un `NSViewRepresentable` sobre una subclase de `NSTextView` (`isEditable = false`, `isSelectable = true`): hover con `NSTrackingArea` + `mouseMoved` + `characterIndexForInsertion(at:)` leyendo el atributo `.link`, y menú con override de `menu(for:)`. Documenta en el README qué camino tomaste y por qué.
 
 ## App predeterminada para Markdown
@@ -122,6 +129,8 @@ Visor y editor de Markdown para macOS 27, pensado también para quien no es prog
 - `MarkdownDocument` / `MarkdownDecoder`: UTF-8 válido, vacío (válido), bytes inválidos (no se escribe), archivo grande.
 - `TextSize` / `Typography`: pasos y límites, ajuste de valores guardados, títulos escalan, código monoespaciado.
 - `MarkdownFormatter`: cada herramienta aplica y quita su sintaxis, selección resultante, offsets UTF-16.
+- `MarkdownSerializer`: ida y vuelta para estilos, listas anidadas, citas, código, tablas, links, saltos forzados y texto que parece sintaxis; salida canónica estable.
+- `RichTextView`: conversión sin pérdida, Return/Borrar/Tab en listas, títulos y tablas, cada herramienta de formato.
 - `MarkdownSyntaxScanner`: spans por tipo, nada se resalta dentro de código, estado de fence entre líneas.
 - `FolderFileEditor`: carga sin marcar cambios, autoguardado, guarda al cambiar de archivo, error de escritura, archivo ilegible nunca se escribe.
 - Parser → modelo: headings 1-6, listas anidadas, blockquote, code block con/sin lenguaje, tabla, estilos inline, link, input malformado.

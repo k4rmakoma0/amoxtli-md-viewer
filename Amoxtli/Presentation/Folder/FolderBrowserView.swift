@@ -4,7 +4,7 @@ struct FolderBrowserView: View {
     let sections: [MarkdownFolderSection]
     @Bindable var viewModel: FolderViewModel
     @Bindable var fileEditor: FolderFileEditor
-    let editor: SourceEditorController
+    let editor: EditorController
     @Binding var mode: EditorMode
 
     @State private var document = DocumentViewModel()

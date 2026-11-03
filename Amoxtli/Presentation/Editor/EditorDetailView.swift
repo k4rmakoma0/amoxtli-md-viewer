@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// The document pane of both windows: the source, the formatted document or both, with the
-/// reading stats below. The formatted side follows the text a moment after typing stops.
+/// reading stats below. Both editors write to the same Markdown text. In the split view, the
+/// formatted side is still read-only and follows the text a moment after typing stops.
 struct EditorDetailView: View {
     @Binding var mode: EditorMode
     @Binding var text: String
@@ -9,7 +10,7 @@ struct EditorDetailView: View {
     let documentID: AnyHashable
     let viewModel: DocumentViewModel
     let links: LinkInteractionViewModel
-    @Bindable var editor: SourceEditorController
+    @Bindable var editor: EditorController
 
     private let preferences = TypographyPreferences()
     private let renderDelay: Duration = .milliseconds(250)
@@ -44,12 +45,14 @@ struct EditorDetailView: View {
         case .source:
             source
         case .formatted:
-            formatted
+            RichEditor(text: $text, controller: editor, links: links, tableOfContents: viewModel.tableOfContents)
+                .overlay { LinkStatusOverlay() }
+                .environment(links)
         case .split:
             HSplitView {
                 source
                     .frame(minWidth: 280)
-                formatted
+                MarkdownReaderView(viewModel: viewModel, links: links)
                     .frame(minWidth: 280)
             }
         }
@@ -57,13 +60,6 @@ struct EditorDetailView: View {
 
     private var source: some View {
         SourceEditor(text: $text, controller: editor)
-    }
-
-    private var formatted: some View {
-        MarkdownReaderView(viewModel: viewModel, links: links) {
-            mode = .source
-            Task { editor.focus() }
-        }
     }
 
     @ViewBuilder

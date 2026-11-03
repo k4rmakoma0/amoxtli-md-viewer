@@ -4,7 +4,7 @@ import SwiftUI
 /// View > Customize Toolbar.
 struct EditorToolbar: CustomizableToolbarContent {
     @Binding var mode: EditorMode
-    let editor: SourceEditorController
+    let editor: EditorController
 
     var body: some CustomizableToolbarContent {
         // Leading, next to Open: a narrow window moves the trailing items into the overflow
@@ -44,7 +44,7 @@ private struct TypographyMenu: View {
 }
 
 private struct StyleMenu: View {
-    let editor: SourceEditorController
+    let editor: EditorController
 
     var body: some View {
         Menu {
@@ -62,7 +62,7 @@ private struct StyleMenu: View {
 private struct ToolGroup: View {
     let title: LocalizedStringKey
     let tools: [FormatTool]
-    let editor: SourceEditorController
+    let editor: EditorController
 
     var body: some View {
         ControlGroup {

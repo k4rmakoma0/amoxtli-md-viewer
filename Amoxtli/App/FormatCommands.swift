@@ -2,7 +2,7 @@ import SwiftUI
 
 /// The Format menu, with every formatting tool and its shortcut.
 struct FormatCommands: Commands {
-    @FocusedValue(\.sourceEditor) private var editor
+    @FocusedValue(\.editorController) private var editor
 
     var body: some Commands {
         CommandMenu("Formato") {

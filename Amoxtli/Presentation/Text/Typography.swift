@@ -3,7 +3,7 @@ import SwiftUI
 
 /// The typeface and size people chose, turned into the fonts of each kind of text. It applies to
 /// the source and to the formatted document alike.
-struct Typography: Equatable {
+nonisolated struct Typography: Equatable {
     var font: ReadingFont = .system
     var size: TextSize = .standard
 
@@ -43,7 +43,7 @@ struct Typography: Equatable {
     }
 }
 
-extension ReadingFont {
+nonisolated extension ReadingFont {
     var design: NSFontDescriptor.SystemDesign {
         switch self {
         case .system: .default
@@ -52,7 +52,9 @@ extension ReadingFont {
         case .rounded: .rounded
         }
     }
+}
 
+extension ReadingFont {
     var title: LocalizedStringKey {
         switch self {
         case .system: "Sistema"

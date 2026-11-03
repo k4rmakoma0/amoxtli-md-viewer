@@ -8,7 +8,7 @@ struct FolderWindowView: View {
 
     @State private var viewModel = FolderViewModel()
     @State private var fileEditor = FolderFileEditor()
-    @State private var editor = SourceEditorController()
+    @State private var editor = EditorController()
     @SceneStorage("editorMode") private var mode = EditorMode.formatted
 
     var body: some View {
@@ -19,7 +19,7 @@ struct FolderWindowView: View {
                 OpenToolbarItem()
                 EditorToolbar(mode: $mode, editor: editor)
             }
-            .focusedSceneValue(\.sourceEditor, editor)
+            .focusedSceneValue(\.editorController, editor)
             .focusedSceneValue(\.editorMode, $mode)
             .task(id: bookmark) {
                 guard let bookmark else { return }

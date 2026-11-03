@@ -22,7 +22,7 @@ nonisolated struct ListItem: Equatable, Sendable {
 }
 
 nonisolated struct MarkdownTable: Equatable, Sendable {
-    enum Alignment: Equatable, Sendable {
+    enum Alignment: Hashable, Sendable {
         case leading, center, trailing
     }
 
@@ -31,7 +31,7 @@ nonisolated struct MarkdownTable: Equatable, Sendable {
     let rows: [[InlineText]]
 }
 
-nonisolated struct MarkdownImage: Equatable, Sendable {
+nonisolated struct MarkdownImage: Hashable, Sendable {
     let source: URL
     let altText: String
 
@@ -50,13 +50,13 @@ nonisolated struct InlineText: Equatable, Sendable {
     }
 }
 
-nonisolated struct InlineRun: Equatable, Sendable {
+nonisolated struct InlineRun: Hashable, Sendable {
     let text: String
     var style: InlineStyle = []
     var link: URL?
 }
 
-nonisolated struct InlineStyle: OptionSet, Equatable, Sendable {
+nonisolated struct InlineStyle: OptionSet, Hashable, Sendable {
     let rawValue: Int
 
     static let emphasis = InlineStyle(rawValue: 1 << 0)

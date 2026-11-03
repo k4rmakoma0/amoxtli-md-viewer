@@ -4,7 +4,7 @@ import SwiftUI
 /// The Markdown source, editable and highlighted.
 struct SourceEditor: NSViewRepresentable {
     @Binding var text: String
-    let controller: SourceEditorController
+    let controller: EditorController
 
     @Environment(\.undoManager) private var undoManager
     @Environment(\.typography) private var typography
@@ -28,6 +28,7 @@ struct SourceEditor: NSViewRepresentable {
         textView.frame = NSRect(origin: .zero, size: scrollView.contentSize)
         textView.minSize = NSSize(width: 0, height: scrollView.contentSize.height)
         scrollView.documentView = textView
+        textView.controller = controller
         controller.attach(textView)
         return scrollView
     }
@@ -45,8 +46,12 @@ struct SourceEditor: NSViewRepresentable {
     }
 
     static func dismantleNSView(_ scrollView: NSScrollView, coordinator: Coordinator) {
-        if let textView = scrollView.documentView as? SourceTextView, let controller = textView.controller {
-            controller.detach(textView)
+        guard let textView = scrollView.documentView as? SourceTextView else { return }
+        textView.controller?.detach(textView)
+        // Undo steps of a text view that is going away can't be replayed into another one.
+        if let undoManager = coordinator.undoManager, let storage = textView.textStorage {
+            undoManager.removeAllActions(withTarget: storage)
+            undoManager.removeAllActions(withTarget: textView)
         }
     }
 

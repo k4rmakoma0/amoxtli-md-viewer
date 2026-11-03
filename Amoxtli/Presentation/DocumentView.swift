@@ -6,7 +6,7 @@ struct DocumentView: View {
     @ObservedObject var document: MarkdownDocument
     @State private var viewModel = DocumentViewModel()
     @State private var links = LinkInteractionViewModel()
-    @State private var editor = SourceEditorController()
+    @State private var editor = EditorController()
     @SceneStorage("isSidebarPresented") private var isSidebarPresented = true
     @SceneStorage("editorMode") private var mode = EditorMode.formatted
 
@@ -26,7 +26,7 @@ struct DocumentView: View {
         .focusedSceneValue(\.sidebarTabAction, SidebarTabAction(availableTabs: [.contents]) { _ in
             isSidebarPresented = true
         })
-        .focusedSceneValue(\.sourceEditor, editor)
+        .focusedSceneValue(\.editorController, editor)
         .focusedSceneValue(\.editorMode, $mode)
     }
 

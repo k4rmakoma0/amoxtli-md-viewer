@@ -27,7 +27,7 @@ struct MarkdownTextStyle: Equatable {
     }
 }
 
-extension NSFont {
+nonisolated extension NSFont {
     func withTraits(_ traits: NSFontDescriptor.SymbolicTraits) -> NSFont {
         let descriptor = fontDescriptor.withSymbolicTraits(fontDescriptor.symbolicTraits.union(traits))
         return NSFont(descriptor: descriptor, size: pointSize) ?? self
