@@ -7,6 +7,7 @@ struct SourceEditor: NSViewRepresentable {
     let controller: SourceEditorController
 
     @Environment(\.undoManager) private var undoManager
+    @Environment(\.typography) private var typography
 
     func makeCoordinator() -> Coordinator {
         Coordinator(text: $text)
@@ -16,6 +17,7 @@ struct SourceEditor: NSViewRepresentable {
         let textView = SourceTextView.make()
         textView.delegate = context.coordinator
         textView.textStorage?.delegate = context.coordinator.highlighter
+        context.coordinator.highlighter.typography = typography
         textView.typingAttributes = context.coordinator.highlighter.baseAttributes
         context.coordinator.undoManager = undoManager
         context.coordinator.show(text, in: textView)
@@ -36,6 +38,9 @@ struct SourceEditor: NSViewRepresentable {
         guard let textView = scrollView.documentView as? SourceTextView else { return }
         if text != context.coordinator.shownText {
             context.coordinator.show(text, in: textView)
+        }
+        if typography != context.coordinator.highlighter.typography {
+            context.coordinator.apply(typography, to: textView)
         }
     }
 
@@ -60,6 +65,14 @@ struct SourceEditor: NSViewRepresentable {
         func show(_ newText: String, in textView: SourceTextView) {
             shownText = newText
             textView.replaceAll(with: newText)
+        }
+
+        func apply(_ typography: Typography, to textView: SourceTextView) {
+            highlighter.typography = typography
+            textView.typingAttributes = highlighter.baseAttributes
+            if let storage = textView.textStorage {
+                highlighter.restyle(storage)
+            }
         }
 
         func textDidChange(_ notification: Notification) {

@@ -4,14 +4,21 @@ import AppKit
 /// edit opens or closes a fenced code block, which changes every line after it.
 @MainActor
 final class SourceHighlighter: NSObject, NSTextStorageDelegate {
-    var font: NSFont = .monospacedSystemFont(ofSize: NSFont.systemFontSize + 1, weight: .regular)
+    var typography = Typography()
 
     private static let fenceKey = NSAttributedString.Key("dev.alananaya.amoxtli.fencedLine")
 
+    private var font: NSFont { typography.body }
+
     var baseAttributes: [NSAttributedString.Key: Any] {
         let paragraph = NSMutableParagraphStyle()
-        paragraph.lineSpacing = 3
+        paragraph.lineSpacing = 3 * typography.size.scale
         return [.font: font, .foregroundColor: NSColor.labelColor, .paragraphStyle: paragraph]
+    }
+
+    /// Styles the whole text again, as when the typography changes.
+    func restyle(_ storage: NSTextStorage) {
+        highlight(NSRange(location: 0, length: storage.length), in: storage, startsInFence: false, followsUp: false)
     }
 
     // `willProcessEditing` is where the delegate may change attributes of the edited text.
@@ -81,6 +88,7 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
         case .strikethrough:
             storage.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: span.range)
         case .inlineCode, .codeBlock:
+            storage.addAttribute(.font, value: typography.code, range: span.range)
             storage.addAttribute(.backgroundColor, value: NSColor.quaternarySystemFill, range: span.range)
         case .linkText:
             storage.addAttribute(.foregroundColor, value: NSColor.linkColor, range: span.range)

@@ -1,26 +1,28 @@
 import AppKit
 
+/// The kind of text a block shows, which decides its font once the typography is known.
+enum MarkdownTextRole: Equatable {
+    case body, tableCell, tableHeader, code
+    case heading(level: Int)
+}
+
 struct MarkdownTextStyle: Equatable {
     var font: NSFont
     var lineSpacing: CGFloat = 0
 
-    static let body = MarkdownTextStyle(font: .preferredFont(forTextStyle: .body), lineSpacing: 3)
-    static let tableCell = MarkdownTextStyle(font: .preferredFont(forTextStyle: .body))
-    static let tableHeader = MarkdownTextStyle(font: .preferredFont(forTextStyle: .body).withTraits(.bold))
-    static let code = MarkdownTextStyle(font: .monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular))
-
-    static func heading(level: Int) -> MarkdownTextStyle {
-        MarkdownTextStyle(font: .preferredFont(forTextStyle: textStyle(forHeadingLevel: level)).withTraits(.bold))
-    }
-
-    private static func textStyle(forHeadingLevel level: Int) -> NSFont.TextStyle {
-        switch level {
-        case 1: .largeTitle
-        case 2: .title1
-        case 3: .title2
-        case 4: .title3
-        case 5: .headline
-        default: .subheadline
+    init(_ role: MarkdownTextRole, typography: Typography) {
+        switch role {
+        case .body:
+            font = typography.body
+            lineSpacing = 3 * typography.size.scale
+        case .tableCell:
+            font = typography.body
+        case .tableHeader:
+            font = typography.body.withTraits(.bold)
+        case .code:
+            font = typography.code
+        case .heading(let level):
+            font = typography.heading(level: level)
         }
     }
 }

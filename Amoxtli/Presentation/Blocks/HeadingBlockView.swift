@@ -5,7 +5,7 @@ struct HeadingBlockView: View {
     let content: InlineText
 
     var body: some View {
-        MarkdownText(content: content, style: .heading(level: level))
+        MarkdownText(content: content, role: .heading(level: level))
             .padding(.top, level <= 2 ? BlockMetrics.spacing : BlockMetrics.nestedSpacing)
             .accessibilityAddTraits(.isHeader)
             .accessibilityHeading(headingLevel)

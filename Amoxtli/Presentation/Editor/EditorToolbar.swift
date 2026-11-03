@@ -12,6 +12,9 @@ struct EditorToolbar: CustomizableToolbarContent {
         ToolbarItem(id: "mode", placement: .navigation) {
             ModePicker(mode: $mode)
         }
+        ToolbarItem(id: "typography") {
+            TypographyMenu()
+        }
         ToolbarItem(id: "style") {
             StyleMenu(editor: editor)
         }
@@ -24,6 +27,19 @@ struct EditorToolbar: CustomizableToolbarContent {
         ToolbarItem(id: "insert") {
             ToolGroup(title: "Insertar", tools: FormatTool.insertions, editor: editor)
         }
+    }
+}
+
+private struct TypographyMenu: View {
+    private let preferences = TypographyPreferences()
+
+    var body: some View {
+        Menu {
+            TypographyControls(preferences: preferences)
+        } label: {
+            Label("Tipo de letra y tamaño", systemImage: "textformat")
+        }
+        .help("Cambia el tipo de letra y el tamaño del texto")
     }
 }
 

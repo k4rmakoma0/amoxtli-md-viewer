@@ -8,11 +8,14 @@ struct ListBlockView: View {
     let items: [ListItem]
     let marker: Marker
 
+    @Environment(\.typography) private var typography
+
     var body: some View {
         VStack(alignment: .leading, spacing: BlockMetrics.nestedSpacing) {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 HStack(alignment: .firstTextBaseline, spacing: BlockMetrics.nestedSpacing) {
                     Text(markerText(for: item))
+                        .font(Font(typography.body))
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                     NestedBlocksView(blocks: item.blocks)

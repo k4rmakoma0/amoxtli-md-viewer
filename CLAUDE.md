@@ -70,6 +70,7 @@ Visor y editor de Markdown para macOS 27, pensado también para quien no es prog
 - La vista con formato se re-renderiza 250 ms después de la última edición (`DocumentViewModel.update`), sin volver arriba. El índice funciona en ambos lados (`SourceHeadingLocator`).
 - Herramientas de formato (`FormatTool` → `FormatCommand` → `MarkdownFormatter` puro en `Domain/`): Texto/Título 1–6 (⌘7, ⌘1–⌘6), negrita ⌘B, cursiva ⌘I, subrayado ⌘U (`<u>…</u>`), tachado ⇧⌘X, código ⌘E, cita ⌘', viñetas ⇧⌘8, numerada ⇧⌘7, enlace ⌘K (hoja con texto y dirección, `LinkInput` normaliza), bloque de código ⌥⌘C, tabla, línea divisoria. Funcionan como interruptor y cada una es un paso de undo.
 - Viven en tres lugares: toolbar personalizable (`.toolbar(id:)`), menú Formato y submenú Formato del clic derecho (Cortar, Copiar, Pegar, Formato ▸, Seleccionar todo). Deshabilitadas si no hay editor de Fuente en pantalla.
+- Tipografía global (`@AppStorage`, `TypographyPreferences`): tipo de letra curado (`ReadingFont`: Sistema, Serif/New York, Monoespaciada, Redondeada, vía `NSFontDescriptor.SystemDesign`) y tamaño por pasos (`TextSize`, 10–32 pt, estándar 13, valores guardados se ajustan al paso más cercano). Se aplica a Fuente y a Formato por el environment `\.typography`; títulos escalan con el cuerpo y el código siempre es monoespaciado. Menú Aa en el toolbar y en Visualización: Aumentar ⌘+, Reducir ⌘−, Tamaño normal ⌘0.
 - Modo carpeta: `FolderFileEditor` guarda 1 s después de la última edición, al cambiar de archivo, al cerrar la ventana y al salir. Escritura atómica. Si falla, alert explicando permisos.
 
 ## Índice (TOC)
@@ -119,6 +120,7 @@ Visor y editor de Markdown para macOS 27, pensado también para quien no es prog
 ## Tests (XCTest)
 
 - `MarkdownDocument` / `MarkdownDecoder`: UTF-8 válido, vacío (válido), bytes inválidos (no se escribe), archivo grande.
+- `TextSize` / `Typography`: pasos y límites, ajuste de valores guardados, títulos escalan, código monoespaciado.
 - `MarkdownFormatter`: cada herramienta aplica y quita su sintaxis, selección resultante, offsets UTF-16.
 - `MarkdownSyntaxScanner`: spans por tipo, nada se resalta dentro de código, estado de fence entre líneas.
 - `FolderFileEditor`: carga sin marcar cambios, autoguardado, guarda al cambiar de archivo, error de escritura, archivo ilegible nunca se escribe.

@@ -11,10 +11,12 @@ struct EditorDetailView: View {
     let links: LinkInteractionViewModel
     @Bindable var editor: SourceEditorController
 
+    private let preferences = TypographyPreferences()
     private let renderDelay: Duration = .milliseconds(250)
 
     var body: some View {
         content
+            .environment(\.typography, preferences.typography)
             .frame(minWidth: 480, minHeight: 360)
             .safeAreaBar(edge: .bottom) { readingStats }
             .task(id: documentID) {

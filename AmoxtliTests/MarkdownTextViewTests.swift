@@ -40,7 +40,7 @@ final class MarkdownTextViewTests: XCTestCase {
         let view = MarkdownTextView.make()
         view.links = viewModel
         view.setLinksUnderlined(false)
-        view.setContent(content.attributedString(style: .body, color: .labelColor))
+        view.setContent(content.attributedString(style: MarkdownTextStyle(.body, typography: Typography()), color: .labelColor))
         let size = view.fittingSize(forProposedWidth: 400)
         view.frame = NSRect(x: 0, y: 0, width: 400, height: size.height)
 
@@ -399,7 +399,7 @@ final class MarkdownTextViewTests: XCTestCase {
             InlineRun(text: "s", style: .strikethrough),
             InlineRun(text: "l", link: link),
         ])
-        let string = content.attributedString(style: .body, color: .labelColor)
+        let string = content.attributedString(style: MarkdownTextStyle(.body, typography: Typography()), color: .labelColor)
 
         func font(at index: Int) throws -> NSFont {
             try XCTUnwrap(string.attribute(.font, at: index, effectiveRange: nil) as? NSFont)

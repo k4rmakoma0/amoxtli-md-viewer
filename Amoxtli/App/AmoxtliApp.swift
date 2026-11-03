@@ -15,6 +15,7 @@ struct AmoxtliApp: App {
             FolderCommands()
             FormatCommands()
             EditorModeCommands()
+            TypographyCommands()
             SidebarCommands()
             SidebarTabCommands()
         }

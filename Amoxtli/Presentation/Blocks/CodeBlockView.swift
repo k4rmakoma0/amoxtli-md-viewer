@@ -6,7 +6,7 @@ struct CodeBlockView: View {
 
     var body: some View {
         ScrollView(.horizontal) {
-            MarkdownText(content: InlineText(runs: [InlineRun(text: code)]), style: .code, wrapsLines: false)
+            MarkdownText(content: InlineText(runs: [InlineRun(text: code)]), role: .code, wrapsLines: false)
                 .fixedSize()
                 .padding(12)
         }
