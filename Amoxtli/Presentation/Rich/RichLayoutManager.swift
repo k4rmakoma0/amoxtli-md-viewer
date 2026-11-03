@@ -19,9 +19,13 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
         super.processEditing(for: textStorage, edited: editMask, range: newCharRange, changeInLength: delta, invalidatedRange: invalidatedCharRange)
         markers = nil
         // Numbers further down may change with any edit to the list. Asking for glyph ranges
-        // isn't allowed while the text is being edited, so the whole view repaints.
-        for container in textContainers {
-            container.textView?.needsDisplay = true
+        // isn't allowed while the text is being edited, so the whole view repaints. The editors
+        // only edit their text on the main thread, though AppKit doesn't declare it here.
+        let textViews = textContainers.compactMap(\.textView)
+        MainActor.assumeIsolated {
+            for textView in textViews {
+                textView.needsDisplay = true
+            }
         }
     }
 
