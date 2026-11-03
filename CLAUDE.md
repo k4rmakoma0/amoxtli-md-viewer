@@ -92,7 +92,7 @@ Editor de Markdown para macOS 27, pensado también para quien no es programador.
 ## Estadísticas de lectura
 
 - `ReadingStats` en `Domain/`: palabras de headings, párrafos, listas, citas y tablas (sin código ni imágenes), con límites de palabra del sistema. Tiempo a 200 palabras/min; menos de 200 palabras → "menos de 1 min".
-- Se muestran en un `safeAreaBar` inferior, alineado a la derecha, texto secundario.
+- Se muestran en una franja propia debajo del editor (no `safeAreaBar`: los editores son scroll views de AppKit, que no se detienen sobre la barra ni difuminan el texto que pasa debajo, y `HSplitView` la ignora), alineado a la derecha, texto secundario.
 - Click en una entrada del índice: los editores van al heading sin animación.
 
 ## Links

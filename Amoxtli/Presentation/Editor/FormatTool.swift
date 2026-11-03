@@ -57,7 +57,7 @@ enum FormatTool: Hashable {
     var systemImage: String {
         switch self {
         case .bodyText: "text.alignleft"
-        case .heading: "textformat.size"
+        case .heading: "paragraphsign"
         case .bold: "bold"
         case .italic: "italic"
         case .underline: "underline"

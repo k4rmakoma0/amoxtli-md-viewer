@@ -16,27 +16,32 @@ struct EditorDetailView: View {
     private let renderDelay: Duration = .milliseconds(250)
 
     var body: some View {
-        content
-            .environment(\.typography, preferences.typography)
-            .frame(minWidth: 480, minHeight: 360)
-            .safeAreaBar(edge: .bottom) { readingStats }
-            .task(id: documentID) {
-                await viewModel.load(.success(text))
+        // The stats get a row of their own rather than a safe area bar: the editors are AppKit
+        // scroll views, which neither stop above such a bar nor fade text that passes under it,
+        // and the split view ignores it altogether.
+        VStack(spacing: 0) {
+            content
+                .environment(\.typography, preferences.typography)
+            readingStats
+        }
+        .frame(minWidth: 480, minHeight: 360)
+        .task(id: documentID) {
+            await viewModel.load(.success(text))
+        }
+        .task(id: text) {
+            try? await Task.sleep(for: renderDelay)
+            guard !Task.isCancelled else { return }
+            await viewModel.update(text)
+        }
+        .onChange(of: viewModel.tableOfContents, initial: true) { _, entries in
+            links.updateAnchors(HeadingAnchors(entries: entries))
+            links.hover(nil)
+        }
+        .sheet(item: $editor.linkRequest) { request in
+            LinkSheet(request: request) { text, destination in
+                editor.insertLink(text: text, destination: destination)
             }
-            .task(id: text) {
-                try? await Task.sleep(for: renderDelay)
-                guard !Task.isCancelled else { return }
-                await viewModel.update(text)
-            }
-            .onChange(of: viewModel.tableOfContents, initial: true) { _, entries in
-                links.updateAnchors(HeadingAnchors(entries: entries))
-                links.hover(nil)
-            }
-            .sheet(item: $editor.linkRequest) { request in
-                LinkSheet(request: request) { text, destination in
-                    editor.insertLink(text: text, destination: destination)
-                }
-            }
+        }
     }
 
     @ViewBuilder

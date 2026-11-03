@@ -52,7 +52,7 @@ private struct StyleMenu: View {
                 Button(tool.title) { editor.perform(tool) }
             }
         } label: {
-            Label("Estilo", systemImage: "textformat.size")
+            Label("Estilo", systemImage: "paragraphsign")
         }
         .help("Convierte las líneas seleccionadas en texto o en un título")
         .disabled(!editor.isAttached)
