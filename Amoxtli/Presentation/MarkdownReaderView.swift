@@ -1,24 +1,13 @@
 import SwiftUI
 
-/// The document pane with its reading stats, shared by the single-file and folder windows.
+/// The formatted document, shared by the single-file and folder windows.
 struct MarkdownReaderView: View {
     let viewModel: DocumentViewModel
     let links: LinkInteractionViewModel
-    var fileURL: URL?
+    /// Offered on an empty document, which has nothing to show until something is written.
+    var onStartWriting: (() -> Void)?
 
     var body: some View {
-        content
-            .frame(minWidth: 480, minHeight: 360)
-            .focusedSceneValue(\.shownFileURL, fileURL)
-            .safeAreaBar(edge: .bottom) { readingStats }
-            .onChange(of: viewModel.tableOfContents, initial: true) { _, entries in
-                links.updateAnchors(HeadingAnchors(entries: entries))
-                links.hover(nil)
-            }
-    }
-
-    @ViewBuilder
-    private var content: some View {
         switch viewModel.state {
         case .loading:
             ProgressView()
@@ -26,15 +15,22 @@ struct MarkdownReaderView: View {
         case .loaded(let model):
             MarkdownContentView(model: model, links: links)
                 .id(viewModel.loadCount)
+        case .failed(.empty):
+            emptyDocument
         case .failed(let error):
             DocumentErrorView(error: error)
         }
     }
 
-    @ViewBuilder
-    private var readingStats: some View {
-        if case .loaded = viewModel.state, let stats = viewModel.readingStats {
-            ReadingStatsView(stats: stats)
+    private var emptyDocument: some View {
+        ContentUnavailableView {
+            Label("Documento vacío", systemImage: "doc")
+        } description: {
+            Text("Escribe en Markdown para ver aquí el documento con formato.")
+        } actions: {
+            if let onStartWriting {
+                Button("Escribir", action: onStartWriting)
+            }
         }
     }
 }

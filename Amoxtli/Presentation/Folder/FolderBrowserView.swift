@@ -3,8 +3,11 @@ import SwiftUI
 struct FolderBrowserView: View {
     let sections: [MarkdownFolderSection]
     @Bindable var viewModel: FolderViewModel
-    let document: DocumentViewModel
+    @Bindable var fileEditor: FolderFileEditor
+    let editor: SourceEditorController
+    @Binding var mode: EditorMode
 
+    @State private var document = DocumentViewModel()
     @State private var links = LinkInteractionViewModel()
     @SceneStorage("sidebarTab") private var sidebarTab = SidebarTab.files
     @SceneStorage("isSidebarPresented") private var isSidebarPresented = true
@@ -23,9 +26,7 @@ struct FolderBrowserView: View {
             isSidebarPresented = true
         })
         .task(id: viewModel.selection) {
-            if let selection = viewModel.selection {
-                await document.load(contentsOf: selection)
-            }
+            await fileEditor.open(viewModel.selection)
         }
     }
 
@@ -64,6 +65,7 @@ struct FolderBrowserView: View {
         } else {
             TableOfContentsView(entries: document.tableOfContents) { entry in
                 links.scroll(toBlock: entry.blockIndex)
+                editor.revealHeading(entry, among: document.tableOfContents)
             }
         }
     }
@@ -71,7 +73,7 @@ struct FolderBrowserView: View {
     @ViewBuilder
     private var detail: some View {
         if let file = viewModel.selectedFile {
-            MarkdownReaderView(viewModel: document, links: links, fileURL: file.url)
+            fileContent(of: file)
                 .navigationSubtitle(Text(verbatim: file.name))
         } else {
             ContentUnavailableView(
@@ -79,6 +81,28 @@ struct FolderBrowserView: View {
                 systemImage: "doc.text",
                 description: Text("Selecciona un archivo Markdown de la lista para leerlo.")
             )
+        }
+    }
+}
+
+extension FolderBrowserView {
+    @ViewBuilder
+    private func fileContent(of file: MarkdownFile) -> some View {
+        switch fileEditor.state {
+        case .idle, .loading:
+            ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case .loaded:
+            EditorDetailView(
+                mode: $mode,
+                text: $fileEditor.text,
+                documentID: file.url,
+                viewModel: document,
+                links: links,
+                editor: editor
+            )
+        case .failed(let error):
+            DocumentErrorView(error: error)
         }
     }
 }

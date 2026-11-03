@@ -2,9 +2,9 @@ import AppKit
 import SwiftUI
 
 /// "Open" split button: a click opens a file, and its menu also offers a folder.
-struct OpenToolbarItem: ToolbarContent {
-    var body: some ToolbarContent {
-        ToolbarItem(placement: .navigation) {
+struct OpenToolbarItem: CustomizableToolbarContent {
+    var body: some CustomizableToolbarContent {
+        ToolbarItem(id: "open", placement: .navigation) {
             OpenMenu()
         }
     }

@@ -77,30 +77,38 @@ final class DocumentViewModelTests: XCTestCase {
         XCTAssertNotEqual(viewModel.loadCount, first)
     }
 
-    func testLoadingFileReadsIt() async throws {
-        let file = try makeTemporaryFolder().addFile("nota.md", contents: Data("# Uno".utf8))
+    func testEmptyTextIsAnEmptyDocument() async {
         let viewModel = DocumentViewModel()
-        await viewModel.load(contentsOf: file)
-        XCTAssertEqual(viewModel.state, .loaded(try MarkdownParser().parse("# Uno")))
-    }
-
-    func testLoadingMissingFileIsUnreadable() async throws {
-        let viewModel = DocumentViewModel()
-        await viewModel.load(contentsOf: try makeTemporaryFolder().url.appending(path: "no-existe.md"))
-        XCTAssertEqual(viewModel.state, .failed(.unreadable))
-    }
-
-    func testLoadingInvalidFileReportsTheEncoding() async throws {
-        let file = try makeTemporaryFolder().addFile("nota.md", contents: Data([0xFF, 0xFE, 0xFD]))
-        let viewModel = DocumentViewModel()
-        await viewModel.load(contentsOf: file)
-        XCTAssertEqual(viewModel.state, .failed(.invalidEncoding))
-    }
-
-    func testLoadingEmptyFileIsEmpty() async throws {
-        let file = try makeTemporaryFolder().addFile("nota.md", contents: Data())
-        let viewModel = DocumentViewModel()
-        await viewModel.load(contentsOf: file)
+        await viewModel.load(.success(" \n"))
         XCTAssertEqual(viewModel.state, .failed(.empty))
+    }
+
+    func testUpdateRendersEdits() async throws {
+        let viewModel = DocumentViewModel()
+        await viewModel.load(.success("# Uno"))
+        await viewModel.update("# Uno\n\n## Dos")
+        XCTAssertEqual(viewModel.tableOfContents.map(\.title), ["Uno", "Dos"])
+    }
+
+    func testUpdateKeepsTheScrollPosition() async {
+        let viewModel = DocumentViewModel()
+        await viewModel.load(.success("# Uno"))
+        let loadCount = viewModel.loadCount
+        await viewModel.update("# Uno editado")
+        XCTAssertEqual(viewModel.loadCount, loadCount)
+    }
+
+    func testUpdateBeforeAnyLoadShowsTheDocument() async throws {
+        let viewModel = DocumentViewModel()
+        await viewModel.update("párrafo")
+        XCTAssertEqual(viewModel.state, .loaded(try MarkdownParser().parse("párrafo")))
+        XCTAssertEqual(viewModel.loadCount, 1)
+    }
+
+    func testUpdateFromEmptyShowsTheDocument() async {
+        let viewModel = DocumentViewModel()
+        await viewModel.load(.success(""))
+        await viewModel.update("# Uno")
+        XCTAssertEqual(viewModel.tableOfContents.map(\.title), ["Uno"])
     }
 }

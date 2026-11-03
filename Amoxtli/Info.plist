@@ -8,7 +8,7 @@
 			<key>CFBundleTypeName</key>
 			<string>Markdown</string>
 			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
+			<string>Editor</string>
 			<key>LSHandlerRank</key>
 			<string>Default</string>
 			<key>LSItemContentTypes</key>

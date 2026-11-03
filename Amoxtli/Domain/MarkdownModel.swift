@@ -63,4 +63,6 @@ nonisolated struct InlineStyle: OptionSet, Equatable, Sendable {
     static let strong = InlineStyle(rawValue: 1 << 1)
     static let code = InlineStyle(rawValue: 1 << 2)
     static let strikethrough = InlineStyle(rawValue: 1 << 3)
+    /// Markdown has no underline: it is written as `<u>text</u>`, as most editors do.
+    static let underline = InlineStyle(rawValue: 1 << 4)
 }

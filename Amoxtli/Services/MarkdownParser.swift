@@ -25,7 +25,8 @@ nonisolated struct MarkdownParser: MarkdownParsing {
                     style: InlineStyle(run.inlinePresentationIntent),
                     link: run.link
                 ),
-                imageURL: run.imageURL
+                imageURL: run.imageURL,
+                isHTML: run.inlinePresentationIntent?.contains(.inlineHTML) ?? false
             )
         }
     }
@@ -124,7 +125,7 @@ nonisolated struct MarkdownParser: MarkdownParsing {
     /// Adjacent runs with the same attributes are merged: soft breaks arrive as runs of their own.
     private func inlineText(from runs: [ParsedRun]) -> InlineText {
         var merged: [InlineRun] = []
-        for run in runs.map(\.inline) {
+        for run in underlined(runs) {
             if let last = merged.last, last.style == run.style, last.link == run.link {
                 merged[merged.count - 1] = InlineRun(text: last.text + run.text, style: last.style, link: last.link)
             } else {
@@ -132,6 +133,31 @@ nonisolated struct MarkdownParser: MarkdownParsing {
             }
         }
         return InlineText(runs: merged)
+    }
+
+    /// The parser keeps `<u>` and `</u>` as inline HTML runs. They become the underline style of
+    /// the runs between them; any other HTML stays as text.
+    private func underlined(_ runs: [ParsedRun]) -> [InlineRun] {
+        var depth = 0
+        var result: [InlineRun] = []
+        for run in runs {
+            if run.isHTML, let change = underlineChange(for: run.inline.text) {
+                depth = max(0, depth + change)
+                continue
+            }
+            var inline = run.inline
+            if depth > 0 { inline.style.insert(.underline) }
+            result.append(inline)
+        }
+        return result
+    }
+
+    private func underlineChange(for tag: String) -> Int? {
+        switch tag.lowercased() {
+        case "<u>", "<ins>": 1
+        case "</u>", "</ins>": -1
+        default: nil
+        }
     }
 
     // MARK: - Tables
@@ -186,6 +212,7 @@ private nonisolated struct ParsedRun {
     let path: [PresentationIntent.IntentType]
     let inline: InlineRun
     let imageURL: URL?
+    let isHTML: Bool
 }
 
 private nonisolated struct RunGroup {

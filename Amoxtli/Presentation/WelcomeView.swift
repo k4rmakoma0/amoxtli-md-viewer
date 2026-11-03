@@ -2,22 +2,29 @@ import AppKit
 import SwiftUI
 
 /// Shown when the app starts with nothing to open. The system's launch panel can only choose
-/// files, so this window puts a file and a folder equally at hand. It closes once either opens.
+/// files, so this window puts a new document, a file and a folder equally at hand. It closes
+/// once any of them opens.
 struct WelcomeView: View {
     static let windowID = "welcome"
 
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.newDocument) private var newDocument
 
     var body: some View {
         VStack(spacing: 28) {
             header
             VStack(spacing: 10) {
+                Button(action: createDocument) {
+                    Label("Nuevo documento", systemImage: "square.and.pencil")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
                 Button(action: openFile) {
                     Label("Abrir archivo…", systemImage: "doc.text")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.bordered)
                 Button(action: openFolder) {
                     Label("Open Folder…", systemImage: "folder")
                         .frame(maxWidth: .infinity)
@@ -29,6 +36,11 @@ struct WelcomeView: View {
         }
         .padding(.horizontal, 56)
         .padding(.vertical, 40)
+    }
+
+    private func createDocument() {
+        newDocument { MarkdownDocument() }
+        dismissWindow(id: Self.windowID)
     }
 
     private func openFile() {

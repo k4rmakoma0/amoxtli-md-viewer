@@ -192,12 +192,12 @@ final class DefaultAppTests: XCTestCase {
 
     // MARK: - Real system
 
-    func testBundleDeclaresMarkdownAsViewer() throws {
+    func testBundleDeclaresMarkdownAsEditor() throws {
         let types = try XCTUnwrap(Bundle.main.object(forInfoDictionaryKey: "CFBundleDocumentTypes") as? [[String: Any]])
         let markdown = try XCTUnwrap(types.first {
             ($0["LSItemContentTypes"] as? [String])?.contains(UTType.markdown.identifier) == true
         })
-        XCTAssertEqual(markdown["CFBundleTypeRole"] as? String, "Viewer")
+        XCTAssertEqual(markdown["CFBundleTypeRole"] as? String, "Editor")
     }
 
     func testRealWorkspaceAnswersWithoutChangingAnything() {

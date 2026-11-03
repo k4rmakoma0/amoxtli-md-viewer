@@ -15,6 +15,9 @@ extension InlineText {
             if run.style.contains(.strikethrough) {
                 attributes[.strikethroughStyle] = NSUnderlineStyle.single.rawValue
             }
+            if run.style.contains(.underline) {
+                attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue
+            }
             if let link = run.link {
                 attributes[.link] = link
             }

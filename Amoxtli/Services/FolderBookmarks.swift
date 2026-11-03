@@ -14,7 +14,7 @@ nonisolated protocol FolderBookmarking: Sendable {
 nonisolated struct SecurityScopedBookmarks: FolderBookmarking {
     func makeBookmark(for folder: URL) throws(FolderError) -> Data {
         do {
-            return try folder.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess])
+            return try folder.bookmarkData(options: .withSecurityScope)
         } catch {
             throw .unreadable
         }

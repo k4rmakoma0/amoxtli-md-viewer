@@ -119,6 +119,24 @@ final class MarkdownParserTests: XCTestCase {
         XCTAssertEqual(try parse("[ir](https://example.com)"), [.paragraph(expected)])
     }
 
+    func testUnderlineTagBecomesUnderline() throws {
+        let expected = InlineText(runs: [
+            InlineRun(text: "a "),
+            InlineRun(text: "b", style: .underline),
+            InlineRun(text: " c"),
+        ])
+        XCTAssertEqual(try parse("a <u>b</u> c"), [.paragraph(expected)])
+    }
+
+    func testInsTagBecomesUnderline() throws {
+        let expected = InlineText(runs: [InlineRun(text: "x", style: [.strong, .underline])])
+        XCTAssertEqual(try parse("<ins>**x**</ins>"), [.paragraph(expected)])
+    }
+
+    func testOtherInlineHTMLStaysAsText() throws {
+        XCTAssertEqual(try parse("a <b>x</b>"), [.paragraph(text("a <b>x</b>"))])
+    }
+
     func testImageSplitsParagraph() throws {
         let url = try XCTUnwrap(URL(string: "https://example.com/a.png"))
         let image = MarkdownImage(source: url, altText: "alt")
