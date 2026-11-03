@@ -85,6 +85,7 @@ final class RichTextView: NSTextView {
         styler.forgetTables()
         textStorage.setAttributedString(converter.attributedString(from: paragraphs))
         normalizer.discardPending()
+        updateListAccessibility()
         connectImages()
         undoManager?.removeAllActions(withTarget: textStorage)
         undoManager?.removeAllActions(withTarget: self)
@@ -104,6 +105,41 @@ final class RichTextView: NSTextView {
         guard let textStorage else { return }
         textStorage.enumerateAttribute(.attachment, in: NSRange(location: 0, length: textStorage.length)) { value, _, _ in
             (value as? ImageAttachment)?.layoutManager = layoutManager
+        }
+    }
+
+    // MARK: - Accessibility
+
+    /// VoiceOver can't see the drawn bullets and numbers, so the first paragraph of each item
+    /// carries them as accessibility attributes. Only paragraphs whose marker changed are
+    /// touched, since every attribute change lays the text out again.
+    private func updateListAccessibility() {
+        guard let textStorage, textStorage.length > 0 else { return }
+        let markers = RichListMarker.markers(in: textStorage).compactMapValues(\.last)
+        let whole = NSRange(location: 0, length: textStorage.length)
+        textStorage.beginEditing()
+        textStorage.enumerateAttribute(.accessibilityListItemIndex, in: whole) { value, range, _ in
+            if value != nil, markers[textStorage.paragraphRange(at: range.location).location] == nil {
+                removeListAccessibility(in: range, of: textStorage)
+            }
+        }
+        for (location, marker) in markers {
+            let paragraph = textStorage.paragraphRange(at: location)
+            let index = textStorage.attribute(.accessibilityListItemIndex, at: location, effectiveRange: nil) as? Int
+            let prefix = textStorage.attribute(.accessibilityListItemPrefix, at: location, effectiveRange: nil) as? NSAttributedString
+            guard index != marker.index || prefix?.string != marker.text + " " else { continue }
+            textStorage.addAttributes([
+                .accessibilityListItemPrefix: NSAttributedString(string: marker.text + " "),
+                .accessibilityListItemIndex: marker.index,
+                .accessibilityListItemLevel: marker.level,
+            ], range: paragraph)
+        }
+        textStorage.endEditing()
+    }
+
+    private func removeListAccessibility(in range: NSRange, of textStorage: NSTextStorage) {
+        for key in [NSAttributedString.Key.accessibilityListItemPrefix, .accessibilityListItemIndex, .accessibilityListItemLevel] {
+            textStorage.removeAttribute(key, range: range)
         }
     }
 
@@ -177,6 +213,7 @@ final class RichTextView: NSTextView {
     /// from them is already right.
     override func didChangeText() {
         if let textStorage { normalizer.normalizePending(in: textStorage) }
+        updateListAccessibility()
         super.didChangeText()
     }
 

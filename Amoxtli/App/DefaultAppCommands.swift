@@ -5,7 +5,7 @@ struct DefaultAppCommands: Commands {
 
     var body: some Commands {
         CommandGroup(after: .appInfo) {
-            Button("Establecer como visor Markdown predeterminado…") {
+            Button("Establecer como app predeterminada para Markdown…") {
                 Task { await flow.setAsDefaultFromMenu() }
             }
         }

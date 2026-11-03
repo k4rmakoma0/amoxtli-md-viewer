@@ -187,4 +187,31 @@ final class RichTextViewTests: XCTestCase {
         let written = markdown(of: view)
         XCTAssertEqual(try MarkdownParser().parse(written).blocks, [.paragraph(InlineText(runs: [InlineRun(text: "# no es título *ni cursiva*")]))])
     }
+
+    // MARK: - Accessibility
+
+    private func listPrefix(of text: String, in view: RichTextView) -> String? {
+        let location = (view.string as NSString).range(of: text).location
+        return (view.textStorage?.attribute(.accessibilityListItemPrefix, at: location, effectiveRange: nil) as? NSAttributedString)?.string
+    }
+
+    func testListMarkersAreReadByVoiceOver() throws {
+        let view = try makeView("1. uno\n2. dos\n   - anidado")
+        XCTAssertEqual(listPrefix(of: "uno", in: view), "1. ")
+        XCTAssertEqual(listPrefix(of: "dos", in: view), "2. ")
+        XCTAssertEqual(listPrefix(of: "anidado", in: view), "◦ ")
+        XCTAssertEqual(view.textStorage?.attribute(.accessibilityListItemLevel, at: (view.string as NSString).range(of: "anidado").location, effectiveRange: nil) as? Int, 1)
+    }
+
+    func testMarkersFollowEdits() throws {
+        let view = try makeView("1. uno\n2. dos")
+        placeCaret(after: "uno", in: view)
+        view.insertNewline(nil)
+        view.insertText("medio", replacementRange: view.selectedRange())
+        XCTAssertEqual(listPrefix(of: "medio", in: view), "2. ")
+        XCTAssertEqual(listPrefix(of: "dos", in: view), "3. ")
+        view.selectAll(nil)
+        view.apply(.numberedList, actionName: "")
+        XCTAssertNil(listPrefix(of: "dos", in: view))
+    }
 }

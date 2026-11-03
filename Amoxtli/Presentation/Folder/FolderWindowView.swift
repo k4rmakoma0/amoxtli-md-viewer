@@ -32,6 +32,18 @@ struct FolderWindowView: View {
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
                 fileEditor.save()
             }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                fileEditor.checkForExternalChanges()
+            }
+            .alert(
+                "«\(fileEditor.conflict?.lastPathComponent ?? "")» cambió fuera de Amoxtli",
+                isPresented: isShowingConflict
+            ) {
+                Button("Usar la versión del disco") { fileEditor.resolveConflict(keepingMine: false) }
+                Button("Conservar mis cambios") { fileEditor.resolveConflict(keepingMine: true) }
+            } message: {
+                Text("Otra app modificó o movió este archivo y aquí hay cambios sin guardar. Elige qué versión conservar.")
+            }
             .alert(
                 "No se pudo guardar el archivo",
                 isPresented: isShowingSaveFailure,
@@ -60,6 +72,11 @@ struct FolderWindowView: View {
                 FolderUnavailableView(reason: .failed(error), onChooseFolder: chooseFolder)
             }
         }
+    }
+
+    /// Dismissing without choosing keeps both versions as they are until the next save asks again.
+    private var isShowingConflict: Binding<Bool> {
+        Binding { fileEditor.conflict != nil } set: { _ in }
     }
 
     private var isShowingSaveFailure: Binding<Bool> {

@@ -1171,72 +1171,72 @@
         }
       }
     },
-    "Amoxtli ya es tu visor Markdown predeterminado": {
+    "Amoxtli ya es tu app predeterminada para Markdown": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amoxtli ist bereits dein Standard-Markdown-Viewer"
+            "value": "Amoxtli ist bereits deine Standard-App für Markdown"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amoxtli is already your default Markdown viewer"
+            "value": "Amoxtli is already your default app for Markdown"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amoxtli ya es tu visor Markdown predeterminado"
+            "value": "Amoxtli ya es tu app predeterminada para Markdown"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amoxtli est déjà votre visualiseur Markdown par défaut"
+            "value": "Amoxtli est déjà votre app par défaut pour le Markdown"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amoxtli è già il tuo visualizzatore Markdown predefinito"
+            "value": "Amoxtli è già la tua app predefinita per Markdown"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "AmoxtliはすでにデフォルトのMarkdownビューアです"
+            "value": "AmoxtliはすでにMarkdownのデフォルトのアプリです"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amoxtli가 이미 기본 Markdown 뷰어입니다"
+            "value": "Amoxtli가 이미 Markdown의 기본 앱입니다"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Amoxtli já é o seu visualizador padrão de Markdown"
+            "value": "O Amoxtli já é o seu app padrão para Markdown"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amoxtli уже используется для просмотра Markdown по умолчанию"
+            "value": "Amoxtli уже является приложением по умолчанию для Markdown"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amoxtli 已是你的默认 Markdown 查看器"
+            "value": "Amoxtli 已是 Markdown 的默认 App"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amoxtli 已是你的預設 Markdown 檢視器"
+            "value": "Amoxtli 已是 Markdown 的預設 App"
           }
         }
       }
@@ -1731,76 +1731,6 @@
         }
       }
     },
-    "Bloque de código en %@": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Codeblock in %@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ code block"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bloque de código en %@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bloc de code en %@"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blocco di codice in %@"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@のコードブロック"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ 코드 블록"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bloco de código em %@"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Блок кода на %@"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ 代码块"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ 程式碼區塊"
-          }
-        }
-      }
-    },
     "Cambia el tipo de letra y el tamaño del texto": {
       "localizations": {
         "de": {
@@ -2007,76 +1937,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "檔案夾"
-          }
-        }
-      }
-    },
-    "Cerrar": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Schließen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Close"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cerrar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fermer"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chiudi"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "閉じる"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "닫기"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fechar"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Закрыть"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "关闭"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "關閉"
           }
         }
       }
@@ -2357,76 +2217,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "欄 2"
-          }
-        }
-      }
-    },
-    "Compartir": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Teilen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Share"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Compartir"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Partager"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Condividi"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "共有"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "공유"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Compartilhar"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Поделиться"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "共享"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分享"
           }
         }
       }
@@ -2777,6 +2567,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "永遠信任 %@"
+          }
+        }
+      }
+    },
+    "Conservar mis cambios": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meine Änderungen behalten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep My Changes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conservar mis cambios"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conserver mes modifications"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantieni le mie modifiche"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "変更内容を残す"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 변경 사항 유지"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter Minhas Alterações"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранить мои изменения"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留我的更改"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留我的變更"
           }
         }
       }
@@ -3481,72 +3341,72 @@
         }
       }
     },
-    "Documento vacío": {
+    "Editor de Markdown": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leeres Dokument"
+            "value": "Markdown-Editor"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Empty Document"
+            "value": "Markdown Editor"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Documento vacío"
+            "value": "Editor de Markdown"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Document vide"
+            "value": "Éditeur Markdown"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Documento vuoto"
+            "value": "Editor Markdown"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "空の書類"
+            "value": "Markdownエディタ"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "빈 문서"
+            "value": "Markdown 편집기"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Documento Vazio"
+            "value": "Editor de Markdown"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Пустой документ"
+            "value": "Редактор Markdown"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "空白文稿"
+            "value": "Markdown 编辑器"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "空白文件"
+            "value": "Markdown 編輯器"
           }
         }
       }
@@ -4321,146 +4181,6 @@
         }
       }
     },
-    "Escribe en Markdown para ver aquí el documento con formato.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Schreibe in Markdown, um hier das formatierte Dokument zu sehen."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Write in Markdown to see the formatted document here."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escribe en Markdown para ver aquí el documento con formato."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Écrivez en Markdown pour voir ici le document mis en forme."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scrivi in Markdown per vedere qui il documento formattato."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Markdownで書くと、ここに書式付きの書類が表示されます。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Markdown으로 작성하면 여기에 서식이 적용된 문서가 표시됩니다."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escreva em Markdown para ver aqui o documento formatado."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Пишите в Markdown, чтобы увидеть здесь документ с форматированием."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用 Markdown 书写，即可在此处看到带格式的文稿。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "使用 Markdown 撰寫，即可在此處看到含格式的文件。"
-          }
-        }
-      }
-    },
-    "Escribir": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Schreiben"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Write"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escribir"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Écrire"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scrivi"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "書く"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "작성"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escrever"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Писать"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "书写"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "撰寫"
-          }
-        }
-      }
-    },
     "Esta carpeta y sus subcarpetas no tienen archivos .md ni .markdown.": {
       "localizations": {
         "de": {
@@ -4531,6 +4251,76 @@
         }
       }
     },
+    "Establecer como app predeterminada para Markdown…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Standard-App für Markdown festlegen …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set as Default App for Markdown…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Establecer como app predeterminada para Markdown…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Définir comme app par défaut pour le Markdown…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imposta come app predefinita per Markdown…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdownのデフォルトのアプリに設定…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown의 기본 앱으로 설정…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definir como app padrão para Markdown…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сделать приложением по умолчанию для Markdown…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为 Markdown 的默认 App…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設為 Markdown 的預設 App⋯"
+          }
+        }
+      }
+    },
     "Establecer como predeterminada": {
       "localizations": {
         "de": {
@@ -4597,76 +4387,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "設為預設"
-          }
-        }
-      }
-    },
-    "Establecer como visor Markdown predeterminado…": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Als Standard-Markdown-Viewer festlegen …"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Set as Default Markdown Viewer…"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Establecer como visor Markdown predeterminado…"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Définir comme visualiseur Markdown par défaut…"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Imposta come visualizzatore Markdown predefinito…"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "デフォルトのMarkdownビューアに設定…"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "기본 Markdown 뷰어로 설정…"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Definir como visualizador padrão de Markdown…"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Использовать для просмотра Markdown по умолчанию…"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设为默认 Markdown 查看器…"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "設為預設 Markdown 檢視器⋯"
           }
         }
       }
@@ -7681,6 +7401,76 @@
         }
       }
     },
+    "Otra app modificó o movió este archivo y aquí hay cambios sin guardar. Elige qué versión conservar.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine andere App hat diese Datei geändert oder bewegt, und hier gibt es nicht gesicherte Änderungen. Wähle, welche Version du behalten möchtest."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another app changed or moved this file, and there are unsaved changes here. Choose which version to keep."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otra app modificó o movió este archivo y aquí hay cambios sin guardar. Elige qué versión conservar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une autre app a modifié ou déplacé ce fichier, et il y a ici des modifications non enregistrées. Choisissez la version à conserver."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un’altra app ha modificato o spostato questo file e qui ci sono modifiche non salvate. Scegli quale versione mantenere."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別のAppがこのファイルを変更または移動しました。ここには保存されていない変更があります。残すバージョンを選択してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다른 앱이 이 파일을 변경하거나 이동했으며 여기에 저장되지 않은 변경 사항이 있습니다. 유지할 버전을 선택하십시오."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outro app alterou ou moveu este arquivo, e há alterações não salvas aqui. Escolha qual versão manter."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Другое приложение изменило или переместило этот файл, а здесь есть несохраненные изменения. Выберите, какую версию оставить."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "另一个 App 更改或移动了此文件，而这里有未存储的更改。请选择要保留的版本。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "另一個 App 變更或移動了此檔案，而這裡有未儲存的變更。請選擇要保留的版本。"
+          }
+        }
+      }
+    },
     "Pegar": {
       "localizations": {
         "de": {
@@ -9151,72 +8941,72 @@
         }
       }
     },
-    "Visor de Markdown": {
+    "Usar la versión del disco": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Markdown-Viewer"
+            "value": "Version auf dem Volume verwenden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Markdown Viewer"
+            "value": "Use the Version on Disk"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visor de Markdown"
+            "value": "Usar la versión del disco"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visionneuse Markdown"
+            "value": "Utiliser la version sur le disque"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visualizzatore Markdown"
+            "value": "Usa la versione sul disco"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Markdownビューア"
+            "value": "ディスク上のバージョンを使用"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Markdown 뷰어"
+            "value": "디스크에 있는 버전 사용"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visualizador de Markdown"
+            "value": "Usar a Versão do Disco"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Просмотр Markdown"
+            "value": "Использовать версию на диске"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Markdown 查看器"
+            "value": "使用磁盘上的版本"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Markdown 檢視器"
+            "value": "使用磁碟上的版本"
           }
         }
       }
@@ -9287,6 +9077,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "閱讀不到 1 分鐘"
+          }
+        }
+      }
+    },
+    "«%@» cambió fuera de Amoxtli": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ wurde außerhalb von Amoxtli geändert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@” changed outside Amoxtli"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%@» cambió fuera de Amoxtli"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "« %@ » a été modifié en dehors d’Amoxtli"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@” è stato modificato fuori da Amoxtli"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@”がAmoxtliの外で変更されました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‘%@’이(가) Amoxtli 외부에서 변경되었습니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@” foi alterado fora do Amoxtli"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%@» изменен вне Amoxtli"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@”已在 Amoxtli 之外更改"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」已在 Amoxtli 之外更改"
           }
         }
       }

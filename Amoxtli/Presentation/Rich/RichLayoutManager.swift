@@ -7,7 +7,7 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
     weak var styler: RichStyler?
 
     /// The markers to draw, by the location of the paragraph that starts each item.
-    private var markers: [Int: [(depth: Int, text: String)]]?
+    private var markers: [Int: [RichListMarker]]?
 
     override func processEditing(
         for textStorage: NSTextStorage,
@@ -97,30 +97,10 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
 
     // MARK: - Markers
 
-    private func currentMarkers(in storage: NSTextStorage) -> [Int: [(depth: Int, text: String)]] {
+    private func currentMarkers(in storage: NSTextStorage) -> [Int: [RichListMarker]] {
         if let markers { return markers }
-        var result: [Int: [(depth: Int, text: String)]] = [:]
-        var counts: [Int: Int] = [:]
-        var previous: [RichContainer] = []
-        for paragraph in storage.paragraphRanges(in: NSRange(location: 0, length: storage.length)) {
-            let containers = storage.paragraphKind(at: paragraph.location)?.containers ?? []
-            for (depth, container) in containers.enumerated() {
-                guard case .listItem(let item) = container else { continue }
-                let isNewItem = !(previous.indices.contains(depth) && previous[depth] == container)
-                guard isNewItem else { continue }
-                let index = counts[item.listID, default: 0]
-                counts[item.listID] = index + 1
-                let listDepth = containers.prefix(depth).filter { if case .listItem = $0 { true } else { false } }.count
-                let text = item.isOrdered ? "\(item.start + index)." : Self.bullet(atDepth: listDepth)
-                result[paragraph.location, default: []].append((depth, text))
-            }
-            previous = containers
-        }
-        markers = result
-        return result
-    }
-
-    private static func bullet(atDepth depth: Int) -> String {
-        ["•", "◦", "▪"][depth % 3]
+        let computed = RichListMarker.markers(in: storage)
+        markers = computed
+        return computed
     }
 }

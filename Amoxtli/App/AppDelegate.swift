@@ -11,6 +11,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { await defaultAppFlow.promptAtLaunchIfNeeded() }
     }
 
+    /// Files edited in another app while Amoxtli was in the background show their new version.
+    func applicationDidBecomeActive(_ notification: Notification) {
+        ExternalDocumentChanges().reloadChanged(NSDocumentController.shared.documents)
+    }
+
     /// The welcome window takes the place of the system's open panel, which only chooses files.
     func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
         false

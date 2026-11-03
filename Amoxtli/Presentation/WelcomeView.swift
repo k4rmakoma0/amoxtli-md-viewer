@@ -66,7 +66,7 @@ struct WelcomeView: View {
                 .accessibilityHidden(true)
             Text(verbatim: "Amoxtli")
                 .font(.largeTitle.bold())
-            Text("Visor de Markdown")
+            Text("Editor de Markdown")
                 .foregroundStyle(.secondary)
         }
     }

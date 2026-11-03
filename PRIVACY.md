@@ -1,23 +1,24 @@
 # Privacy Policy / Política de privacidad
 
-**Effective / Vigente desde:** November 1, 2026 / 1 de noviembre de 2026
+**Effective / Vigente desde:** November 3, 2026 / 3 de noviembre de 2026
 
 [English](#english) · [Español](#español)
 
 ## English
 
-Amoxtli: Markdown Viewer ("Amoxtli") is a read-only Markdown viewer for Mac. **Amoxtli does not collect, store on any server, sell, or share your personal data.** It has no accounts, ads, analytics, or tracking, and its developer receives nothing from your use of the app.
+Amoxtli: Markdown Editor ("Amoxtli") is a Markdown editor for Mac. **Amoxtli does not collect, store on any server, sell, or share your personal data.** It has no accounts, ads, analytics, or tracking, and its developer receives nothing from your use of the app.
 
 ### Your documents
 
-The files and folders you open are read on your Mac and are never sent to the developer. Amoxtli never changes them.
+The files and folders you open are read and saved on your Mac and are never sent to the developer. Amoxtli only changes a file when you edit it: a single document when it is saved, and a file in an open folder automatically as you edit it.
 
 ### Data kept on your Mac
 
 Amoxtli keeps a few items in its private storage on your Mac so that it works as expected:
 
 - The sites you chose to always trust when opening links
-- Your choice not to be asked again about making Amoxtli the default viewer
+- Your choice not to be asked again about making Amoxtli the default app for Markdown
+- Your typeface and text size, and the editing mode of each window
 - Window state and access permissions for the folders you opened, so that those windows can be restored
 - Images from documents, which the system may keep in a temporary cache
 
@@ -47,18 +48,19 @@ For questions about this policy, [open an issue on GitHub](https://github.com/k4
 
 ## Español
 
-Amoxtli: Markdown Viewer ("Amoxtli") es un visor de Markdown de solo lectura para Mac. **Amoxtli no recopila, guarda en ningún servidor, vende ni comparte tus datos personales.** No tiene cuentas, anuncios, analíticas ni rastreo, y su desarrollador no recibe nada por el uso que hagas de la app.
+Amoxtli: Markdown Editor ("Amoxtli") es un editor de Markdown para Mac. **Amoxtli no recopila, guarda en ningún servidor, vende ni comparte tus datos personales.** No tiene cuentas, anuncios, analíticas ni rastreo, y su desarrollador no recibe nada por el uso que hagas de la app.
 
 ### Tus documentos
 
-Los archivos y carpetas que abres se leen en tu Mac y nunca se envían al desarrollador. Amoxtli nunca los modifica.
+Los archivos y carpetas que abres se leen y se guardan en tu Mac, y nunca se envían al desarrollador. Amoxtli solo modifica un archivo cuando lo editas: un documento suelto al guardarse, y un archivo de una carpeta abierta automáticamente mientras lo editas.
 
 ### Datos que se guardan en tu Mac
 
 Amoxtli conserva algunos datos en su almacenamiento privado en tu Mac para funcionar como se espera:
 
 - Los sitios en los que elegiste confiar siempre al abrir enlaces
-- Tu decisión de que no se te vuelva a preguntar sobre usar Amoxtli como visor predeterminado
+- Tu decisión de que no se te vuelva a preguntar sobre usar Amoxtli como app predeterminada para Markdown
+- Tu tipo de letra y tamaño de texto, y el modo de edición de cada ventana
 - El estado de las ventanas y los permisos de acceso a las carpetas que abriste, para poder restaurar esas ventanas
 - Imágenes de los documentos, que el sistema puede conservar en una caché temporal
 

@@ -20,7 +20,7 @@ struct DefaultAppAlerts: DefaultAppPrompting {
 
     func showAlreadyDefault() {
         let alert = NSAlert()
-        alert.messageText = String(localized: "Amoxtli ya es tu visor Markdown predeterminado")
+        alert.messageText = String(localized: "Amoxtli ya es tu app predeterminada para Markdown")
         alert.runModal()
     }
 

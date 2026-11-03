@@ -1,11 +1,11 @@
-# Amoxtli: Markdown Viewer
+# Amoxtli: Markdown Editor
 
-Visor y editor de Markdown para macOS 27, pensado también para quien no es programador. Gratuito y 100% open source (MIT). Xcode 27, Swift 6.
+Editor de Markdown para macOS 27, pensado también para quien no es programador. Gratuito y 100% open source (MIT). Xcode 27, Swift 6.
 
 ## Identidad
 
 - Bundle ID: `dev.alananaya.amoxtli`
-- Nombre en README/App Store: "Amoxtli: Markdown Viewer"
+- Nombre en README/App Store: "Amoxtli: Markdown Editor" (en español, "Amoxtli: Editor de Markdown"). Las cadenas de la app dicen "app predeterminada para Markdown", no "visor".
 - `PRODUCT_NAME` y `CFBundleDisplayName`: `Amoxtli` (sin dos puntos: el nombre del .app es un nombre de archivo)
 - Target/scheme: `Amoxtli`
 
@@ -81,6 +81,8 @@ Visor y editor de Markdown para macOS 27, pensado también para quien no es prog
 - Viven en tres lugares: toolbar personalizable (`.toolbar(id:)`), menú Formato y submenú Formato del clic derecho (`EditingContextMenu`: Cortar, Copiar, Pegar, Formato ▸, Seleccionar todo). Deshabilitadas si no hay editor en pantalla.
 - Tipografía global (`@AppStorage`, `TypographyPreferences`): tipo de letra curado (`ReadingFont`: Sistema, Serif/New York, Monoespaciada, Redondeada, vía `NSFontDescriptor.SystemDesign`) y tamaño por pasos (`TextSize`, 10–32 pt, estándar 13, valores guardados se ajustan al paso más cercano). Se aplica a Fuente y a Formato por el environment `\.typography`; títulos escalan con el cuerpo y el código siempre es monoespaciado. Menú Aa en el toolbar y en Visualización: Aumentar ⌘+, Reducir ⌘−, Tamaño normal ⌘0.
 - Modo carpeta: `FolderFileEditor` guarda 1 s después de la última edición, al cambiar de archivo, al cerrar la ventana y al salir. Escritura atómica. Si falla, alert explicando permisos.
+- Cambios externos (`ExternalChange` en `Domain/`, fechas de modificación vía `FileDating`): al activarse la app, los documentos sin cambios sin guardar se recargan (`ExternalDocumentChanges` llama a `NSDocument.revert`; `DocumentGroup` no lo hace solo). En carpeta, `FolderFileEditor` recarga si no hay nada sin guardar y si hay, alerta para elegir versión; tampoco guarda encima de un archivo que cambió. La fecha se lee como la lee `NSDocument` (resource value sin caché) para no disparar recargas falsas.
+- Accesibilidad del editor con formato: cada primer párrafo de ítem lleva `.accessibilityListItemPrefix`, `Index` y `Level` (`RichListMarker`, compartido con el dibujo), así VoiceOver anuncia viñetas y números. No existe una llave equivalente para títulos.
 
 ## Índice (TOC)
 
@@ -109,7 +111,7 @@ Visor y editor de Markdown para macOS 27, pensado también para quien no es prog
 - Info.plist: `UTImportedTypeDeclarations` para `net.daringfireball.markdown` (extensiones md, markdown; conforma a `public.plain-text`) y `CFBundleDocumentTypes` con rol Editor.
 - Al iniciar: si la app NO es la predeterminada (comparar `NSWorkspace.shared.urlForApplication(toOpen:)` con `Bundle.main.bundleURL`), mostrar alert propio "Usar Amoxtli para abrir archivos Markdown" con [Establecer como predeterminada] [Ahora no] y checkbox "No volver a preguntar" (UserDefaults).
 - Al aceptar: `NSWorkspace.shared.setDefaultApplication(at:toOpen:)` (async throws) para el UTType de Markdown. El sistema muestra su propia confirmación; maneja error y cancelación sin crashear.
-- Menú de la app: "Establecer como visor Markdown predeterminado…" siempre disponible.
+- Menú de la app: "Establecer como app predeterminada para Markdown…" siempre disponible.
 - Encapsula `NSWorkspace` detrás de un protocolo mínimo (`WorkspaceServicing`) solo para testear.
 
 ## Diseño nativo (macOS 27 / Liquid Glass)
@@ -131,6 +133,7 @@ Visor y editor de Markdown para macOS 27, pensado también para quien no es prog
 - `MarkdownDocument` / `MarkdownDecoder`: UTF-8 válido, vacío (válido), bytes inválidos (no se escribe), archivo grande.
 - `TextSize` / `Typography`: pasos y límites, ajuste de valores guardados, títulos escalan, código monoespaciado.
 - `MarkdownFormatter`: cada herramienta aplica y quita su sintaxis, selección resultante, offsets UTF-16.
+- `ExternalChange` / `FolderFileEditor`: recarga sin cambios locales, conflicto con cambios locales, no guarda encima, conservar la mía, usar la del disco, archivo borrado.
 - `TextDifference`: inserción, borrado, reemplazo, caracteres de dos unidades UTF-16, ajuste de la selección; Fuente conserva el cursor al recibir texto de Formato.
 - `MarkdownSerializer`: ida y vuelta para estilos, listas anidadas, citas, código, tablas, links, saltos forzados y texto que parece sintaxis; salida canónica estable.
 - `RichTextView`: conversión sin pérdida, Return/Borrar/Tab en listas, títulos y tablas, cada herramienta de formato.

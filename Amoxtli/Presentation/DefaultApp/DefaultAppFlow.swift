@@ -11,7 +11,7 @@ protocol DefaultAppPrompting {
     func showFailure()
 }
 
-/// The two ways to become the default Markdown viewer: the prompt at launch and the app menu.
+/// The two ways to become the default app for Markdown: the prompt at launch and the app menu.
 struct DefaultAppFlow {
     private let checker: DefaultAppChecker
     private let prompter: any DefaultAppPrompting

@@ -4,7 +4,7 @@ cask "amoxtli" do
 
   url "https://github.com/@REPO@/releases/download/v#{version}/Amoxtli-#{version}.zip"
   name "Amoxtli"
-  desc "Native Markdown viewer"
+  desc "Native Markdown editor"
   homepage "https://github.com/@REPO@"
 
   depends_on macos: :golden_gate

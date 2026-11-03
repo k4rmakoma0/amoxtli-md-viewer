@@ -7,6 +7,7 @@ final class FolderFileEditorTests: XCTestCase {
     private final class FakeFiles: MarkdownFileAccessing, @unchecked Sendable {
         private let lock = NSLock()
         private var contents: [URL: Result<String, MarkdownDocumentError>]
+        private var dates: [URL: Date] = [:]
         private var writtenFiles: [URL] = []
         var failsToWrite = false
 
@@ -24,11 +25,24 @@ final class FolderFileEditorTests: XCTestCase {
             lock.withLock { contents[file] ?? .failure(.unreadable) }
         }
 
+        func modificationDate(of file: URL) -> Date? {
+            lock.withLock { contents[file] == nil ? nil : dates[file, default: .distantPast] }
+        }
+
         func write(_ text: String, to file: URL) throws {
             try lock.withLock {
                 if failsToWrite { throw CocoaError(.fileWriteNoPermission) }
                 contents[file] = .success(text)
+                dates[file] = Date()
                 writtenFiles.append(file)
+            }
+        }
+
+        /// Another app writing the file.
+        func changeOnDisk(_ file: URL, to text: String?) {
+            lock.withLock {
+                contents[file] = text.map { .success($0) }
+                dates[file] = Date()
             }
         }
     }
@@ -120,5 +134,85 @@ final class FolderFileEditorTests: XCTestCase {
         editor.text = "# Uno ñ 🌮"
         editor.save()
         XCTAssertEqual(try String(contentsOf: file, encoding: .utf8), "# Uno ñ 🌮")
+    }
+
+    // MARK: - Changes made elsewhere
+
+    func testFileChangedElsewhereIsShownWhenNothingIsUnsaved() async {
+        let files = makeFiles()
+        let editor = FolderFileEditor(files: files)
+        await editor.open(first)
+        files.changeOnDisk(first, to: "# Uno desde otra app")
+        editor.checkForExternalChanges()
+        XCTAssertEqual(editor.text, "# Uno desde otra app")
+        XCTAssertFalse(editor.hasUnsavedChanges)
+        XCTAssertNil(editor.conflict)
+    }
+
+    func testFileChangedElsewhereWithUnsavedChangesAsks() async {
+        let files = makeFiles()
+        let editor = FolderFileEditor(files: files, autosaveDelay: .seconds(60))
+        await editor.open(first)
+        editor.text = "# Mío"
+        files.changeOnDisk(first, to: "# Suyo")
+        editor.checkForExternalChanges()
+        XCTAssertEqual(editor.conflict, first)
+        XCTAssertEqual(editor.text, "# Mío")
+    }
+
+    func testSaveNeverWritesOverAFileChangedElsewhere() async {
+        let files = makeFiles()
+        let editor = FolderFileEditor(files: files, autosaveDelay: .seconds(60))
+        await editor.open(first)
+        editor.text = "# Mío"
+        files.changeOnDisk(first, to: "# Suyo")
+        editor.save()
+        XCTAssertEqual(files.text(of: first), "# Suyo")
+        XCTAssertEqual(editor.conflict, first)
+    }
+
+    func testKeepingMineWritesIt() async {
+        let files = makeFiles()
+        let editor = FolderFileEditor(files: files, autosaveDelay: .seconds(60))
+        await editor.open(first)
+        editor.text = "# Mío"
+        files.changeOnDisk(first, to: "# Suyo")
+        editor.save()
+        editor.resolveConflict(keepingMine: true)
+        XCTAssertEqual(files.text(of: first), "# Mío")
+        XCTAssertNil(editor.conflict)
+    }
+
+    func testUsingTheDiskVersionShowsIt() async {
+        let files = makeFiles()
+        let editor = FolderFileEditor(files: files, autosaveDelay: .seconds(60))
+        await editor.open(first)
+        editor.text = "# Mío"
+        files.changeOnDisk(first, to: "# Suyo")
+        editor.save()
+        editor.resolveConflict(keepingMine: false)
+        XCTAssertEqual(editor.text, "# Suyo")
+        XCTAssertFalse(editor.hasUnsavedChanges)
+    }
+
+    func testRemovedFileWithUnsavedChangesAsks() async {
+        let files = makeFiles()
+        let editor = FolderFileEditor(files: files, autosaveDelay: .seconds(60))
+        await editor.open(first)
+        editor.text = "# Mío"
+        files.changeOnDisk(first, to: nil)
+        editor.checkForExternalChanges()
+        XCTAssertEqual(editor.conflict, first)
+    }
+
+    func testOwnSavesAreNotChangesElsewhere() async {
+        let files = makeFiles()
+        let editor = FolderFileEditor(files: files)
+        await editor.open(first)
+        editor.text = "# Mío"
+        editor.save()
+        editor.checkForExternalChanges()
+        XCTAssertNil(editor.conflict)
+        XCTAssertEqual(editor.text, "# Mío")
     }
 }
