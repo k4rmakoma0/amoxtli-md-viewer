@@ -15,9 +15,11 @@ nonisolated final class RichStyler {
     var quoteIndent: CGFloat { 20 * typography.size.scale }
     let codePadding: CGFloat = 12
 
-    /// The language's name, drawn in a strip above a code block's first line.
-    var codeLabelFont: NSFont { .systemFont(ofSize: (size * 0.8).rounded(), weight: .medium) }
-    var codeLabelHeight: CGFloat { (codeLabelFont.ascender - codeLabelFont.descender).rounded(.up) + 4 }
+    /// Every code block starts with a strip holding a chip with its language, which opens
+    /// the menu to choose it.
+    var codeChipFont: NSFont { .systemFont(ofSize: (size * 0.8).rounded(), weight: .medium) }
+    var codeChipHeight: CGFloat { (codeChipFont.ascender - codeChipFont.descender).rounded(.up) + 6 }
+    var codeChipStripHeight: CGFloat { codeChipHeight + 6 }
 
     func forgetTables() {
         tables = [:]
@@ -169,9 +171,9 @@ nonisolated final class RichStyler {
         switch kind.block {
         case .heading(let level):
             return level <= 2 ? size : size * 0.5
-        case .code(let id, let language):
+        case .code(let id, _):
             if case .code(let previousID, _) = previous?.block, previousID == id { return 0 }
-            return size * 0.5 + (CodeLanguage.label(forFenceInfo: language) == nil ? 0 : codeLabelHeight)
+            return size * 0.5 + codeChipStripHeight
         default:
             // The paragraph after a code block or a table, which have no spacing of their own.
             switch previous?.block {

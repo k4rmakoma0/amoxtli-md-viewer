@@ -136,6 +136,53 @@ final class RichCodeHighlightingTests: XCTestCase {
         XCTAssertFalse(try menuTitles(at: "texto").contains(String(localized: "Lenguaje")))
     }
 
+    private func location(of text: String, in view: RichTextView) -> Int {
+        (view.string as NSString).range(of: text).location
+    }
+
+    func testEveryCodeBlockHasAChipThatFindsItsBlock() throws {
+        let view = try makeView("texto\n\n```\n{\n}\n```\n\n```js\nlet x\n```")
+        for start in [location(of: "{", in: view), location(of: "let x", in: view)] {
+            let chip = try XCTUnwrap(view.codeChipRect(forBlockAt: start))
+            XCTAssertEqual(view.codeBlock(withChipAt: NSPoint(x: chip.midX, y: chip.midY)), start)
+        }
+        XCTAssertNil(view.codeChipRect(forBlockAt: location(of: "texto", in: view)))
+    }
+
+    func testABlockThatStartsTheTextHasItsChipInTheMargin() throws {
+        let view = try makeView("```\n{}\n```")
+        let chip = try XCTUnwrap(view.codeChipRect(forBlockAt: 0))
+        XCTAssertGreaterThan(chip.minY, 0)
+        XCTAssertLessThan(chip.maxY, view.textContainerOrigin.y)
+        XCTAssertEqual(view.codeBlock(withChipAt: NSPoint(x: chip.midX, y: chip.midY)), 0)
+    }
+
+    func testTextIsNotTheChip() throws {
+        let view = try makeView("```\nlet x\n```")
+        let layoutManager = try XCTUnwrap(view.layoutManager)
+        let glyphs = layoutManager.glyphRange(forCharacterRange: NSRange(location: 0, length: 3), actualCharacterRange: nil)
+        let rect = layoutManager.boundingRect(forGlyphRange: glyphs, in: try XCTUnwrap(view.textContainer))
+        let point = NSPoint(x: rect.midX + view.textContainerOrigin.x, y: rect.midY + view.textContainerOrigin.y)
+        XCTAssertNil(view.codeBlock(withChipAt: point))
+    }
+
+    func testChipMenuChoosesTheLanguageOfItsBlock() throws {
+        let view = try makeView("```\n{}\n```\n\nfin")
+        placeCaret(after: "fin", in: view)
+        let menu = try XCTUnwrap(view.languageMenu(forBlockAt: 0))
+        let json = try XCTUnwrap(menu.items.first { $0.title == "JSON" })
+        try XCTUnwrap(json.target as? MenuAction).invoke()
+        XCTAssertEqual(markdown(of: view), "```json\n{}\n```\n\nfin\n")
+    }
+
+    func testChipMenuKeepsTheCaretInsideTheBlock() throws {
+        let view = try makeView("```\nuno\ndos\n```")
+        placeCaret(after: "do", in: view)
+        let caret = view.selectedRange()
+        _ = view.languageMenu(forBlockAt: 0)
+        XCTAssertEqual(view.selectedRange(), caret)
+    }
+
     func testOutsideCodeThereIsNoLanguage() throws {
         let view = try makeView("texto")
         placeCaret(after: "tex", in: view)

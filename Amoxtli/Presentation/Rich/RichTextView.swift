@@ -82,6 +82,7 @@ final class RichTextView: NSTextView {
     /// Replaces the whole document. Undo can't reach the previous one.
     func show(_ paragraphs: [RichParagraph]) {
         guard let textStorage else { return }
+        updateMargins(width: frame.width)
         styler.forgetTables()
         var editable = paragraphs
         if case .tableCell = paragraphs.last?.block {
@@ -153,9 +154,18 @@ final class RichTextView: NSTextView {
 
     override func setFrameSize(_ newSize: NSSize) {
         super.setFrameSize(newSize)
-        let margin = max(minimumMargin, (newSize.width - readingWidth) / 2)
-        if textContainerInset.width != margin {
-            textContainerInset = NSSize(width: margin, height: 40)
+        updateMargins(width: newSize.width)
+    }
+
+    /// The top margin also holds the strip above a code block that starts the text, which
+    /// TextKit gives no spacing of its own; it grows with the text size.
+    private func updateMargins(width: CGFloat) {
+        let margins = NSSize(
+            width: max(minimumMargin, (width - readingWidth) / 2),
+            height: max(40, styler.codeChipStripHeight + 18)
+        )
+        if textContainerInset != margins {
+            textContainerInset = margins
         }
     }
 
@@ -240,6 +250,8 @@ final class RichTextView: NSTextView {
 
     override func drawBackground(in rect: NSRect) {
         super.drawBackground(in: rect)
+        (layoutManager as? RichLayoutManager)?.emptyLastLineKind = emptyLastLineKind
+        (layoutManager as? RichLayoutManager)?.drawLeadingCodeStrip(at: textContainerOrigin)
         guard let kind = emptyLastLineKind, let layoutManager = layoutManager as? RichLayoutManager else { return }
         let style = InlineStyle(rawValue: typingAttributes[.inlineStyle] as? Int ?? 0)
         layoutManager.drawEmptyLastLine(as: kind, style: style, at: textContainerOrigin)
@@ -563,6 +575,16 @@ final class RichTextView: NSTextView {
         super.mouseMoved(with: event)
         let point = convert(event.locationInWindow, from: nil)
         links?.hover(linkCharacterIndex(at: point).flatMap(link(atCharacter:)))
+        if codeBlock(withChipAt: point) != nil {
+            NSCursor.pointingHand.set()
+        }
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        guard let block = codeBlock(withChipAt: point) else { return super.mouseDown(with: event) }
+        window?.makeFirstResponder(self)
+        showLanguageMenu(forBlockAt: block)
     }
 
     override func mouseExited(with event: NSEvent) {
