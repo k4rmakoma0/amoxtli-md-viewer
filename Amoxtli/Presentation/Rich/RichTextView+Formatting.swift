@@ -19,7 +19,7 @@ extension RichTextView: FormattingTarget {
         case .bulletList: toggleList(isOrdered: false)
         case .numberedList: toggleList(isOrdered: true)
         case .codeBlock: toggleCodeBlock()
-        case .table: insertTable()
+        case .table(let dimensions): insertTable(dimensions)
         case .horizontalRule: insertBlocks([RichParagraph(block: .thematicBreak)], selecting: nil)
         case .link(let text, let destination): insertLink(text: text, destination: destination)
         }
@@ -179,18 +179,18 @@ extension RichTextView: FormattingTarget {
 
     // MARK: - Insertions
 
-    private func insertTable() {
+    private func insertTable(_ dimensions: TableDimensions) {
         let tableID = makeID()
-        let alignments: [MarkdownTable.Alignment] = [.leading, .leading]
-        let headers = [String(localized: "Columna 1"), String(localized: "Columna 2")]
+        let alignments = Array(repeating: MarkdownTable.Alignment.leading, count: dimensions.columns)
+        let headers = dimensions.headers
         var cells: [RichParagraph] = []
-        for row in 0..<2 {
-            for column in 0..<2 {
+        for row in 0..<dimensions.rows {
+            for column in 0..<dimensions.columns {
                 let runs = row == 0 ? [InlineRun(text: headers[column])] : []
                 cells.append(RichParagraph(block: .tableCell(RichTableCell(tableID: tableID, row: row, column: column, alignments: alignments)), runs: runs))
             }
         }
-        insertBlocks(cells, selecting: headers[0])
+        insertBlocks(cells, selecting: headers.first)
     }
 
     /// Inserts blocks after the current paragraph, or in its place when it is empty, with an

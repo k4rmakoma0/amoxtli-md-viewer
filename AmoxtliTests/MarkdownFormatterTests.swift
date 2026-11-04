@@ -157,7 +157,7 @@ final class MarkdownFormatterTests: XCTestCase {
     func testTableSelectsFirstHeader() {
         let header = String(localized: "Columna 1")
         let second = String(localized: "Columna 2")
-        XCTAssertEqual(format(.table, "‸"), "| «\(header)» | \(second) |\n| --- | --- |\n|  |  |")
+        XCTAssertEqual(format(.table(.standard), "‸"), "| «\(header)» | \(second) |\n| --- | --- |\n|  |  |")
     }
 
     // MARK: - Links

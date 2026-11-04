@@ -42,6 +42,11 @@ struct EditorDetailView: View {
                 editor.insertLink(text: text, destination: destination)
             }
         }
+        .sheet(isPresented: $editor.isInsertingTable) {
+            TableSheet { dimensions in
+                editor.insertTable(dimensions)
+            }
+        }
     }
 
     @ViewBuilder

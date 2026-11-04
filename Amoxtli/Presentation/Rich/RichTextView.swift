@@ -83,7 +83,13 @@ final class RichTextView: NSTextView {
     func show(_ paragraphs: [RichParagraph]) {
         guard let textStorage else { return }
         styler.forgetTables()
-        textStorage.setAttributedString(converter.attributedString(from: paragraphs))
+        var editable = paragraphs
+        if case .tableCell = paragraphs.last?.block {
+            // An empty final cell needs a newline to carry its position in text storage.
+            // A following body paragraph also lets typing continue outside the table.
+            editable.append(RichParagraph(block: .paragraph))
+        }
+        textStorage.setAttributedString(converter.attributedString(from: editable))
         normalizer.discardPending()
         updateListAccessibility()
         connectImages()

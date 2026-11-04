@@ -15,7 +15,7 @@ enum FormatTool: Hashable {
     /// The tools grouped as the menus list them.
     static let menuGroups: [[FormatTool]] = [styles, inline, blocks, insertions]
 
-    /// `nil` for the link, which first asks for its destination.
+    /// `nil` for tools that ask for insertion options first.
     var command: FormatCommand? {
         switch self {
         case .bodyText: .heading(0)
@@ -30,7 +30,7 @@ enum FormatTool: Hashable {
         case .numberedList: .numberedList
         case .link: nil
         case .codeBlock: .codeBlock
-        case .table: .table
+        case .table: nil
         case .horizontalRule: .horizontalRule
         }
     }
@@ -49,7 +49,7 @@ enum FormatTool: Hashable {
         case .numberedList: String(localized: "Lista numerada")
         case .link: String(localized: "Enlace…")
         case .codeBlock: String(localized: "Bloque de código")
-        case .table: String(localized: "Tabla")
+        case .table: String(localized: "Tabla…")
         case .horizontalRule: String(localized: "Línea divisoria")
         }
     }

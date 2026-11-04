@@ -25,6 +25,7 @@ final class EditorController {
     private(set) var isAttached = false
     /// Set to ask for a link's destination; the sheet inserts the link when it is confirmed.
     var linkRequest: LinkRequest?
+    var isInsertingTable = false
 
     /// Every editor on screen. The tools act on the one used last.
     @ObservationIgnored private var targets: [WeakTarget] = []
@@ -50,7 +51,11 @@ final class EditorController {
     }
 
     func perform(_ tool: FormatTool) {
-        if let command = tool.command {
+        guard !isInsertingTable, linkRequest == nil else { return }
+        if tool == .table {
+            guard activeTarget != nil else { return }
+            isInsertingTable = true
+        } else if let command = tool.command {
             activeTarget?.apply(command, actionName: tool.title)
         } else {
             requestLink()
@@ -58,7 +63,7 @@ final class EditorController {
     }
 
     func requestLink() {
-        guard let activeTarget else { return }
+        guard let activeTarget, !isInsertingTable else { return }
         let pasted = NSPasteboard.general.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines)
         let suggestion = pasted.flatMap(URL.init(string:)).flatMap { $0.scheme == "http" || $0.scheme == "https" ? $0.absoluteString : nil }
         linkRequest = LinkRequest(text: activeTarget.selectedText, destination: suggestion ?? "")
@@ -67,6 +72,13 @@ final class EditorController {
     func insertLink(text: String, destination: String) {
         guard let destination = LinkInput.normalized(destination), let activeTarget else { return }
         activeTarget.apply(.link(text: text, destination: destination), actionName: String(localized: "Enlace"))
+        activeTarget.focusEditor()
+    }
+
+    func insertTable(_ dimensions: TableDimensions) {
+        isInsertingTable = false
+        guard let activeTarget else { return }
+        activeTarget.apply(.table(dimensions), actionName: String(localized: "Tabla"))
         activeTarget.focusEditor()
     }
 

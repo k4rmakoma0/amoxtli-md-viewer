@@ -13,7 +13,7 @@ nonisolated enum FormatCommand: Hashable, Sendable {
     case bulletList
     case numberedList
     case codeBlock
-    case table
+    case table(TableDimensions)
     case horizontalRule
     case link(text: String, destination: String)
 

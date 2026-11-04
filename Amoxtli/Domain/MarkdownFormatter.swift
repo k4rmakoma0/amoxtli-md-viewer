@@ -17,7 +17,8 @@ nonisolated enum MarkdownFormatter {
         case .bulletList: return LineEditor(source: source, selection: selection).bulletList()
         case .numberedList: return LineEditor(source: source, selection: selection).numberedList()
         case .codeBlock: return LineEditor(source: source, selection: selection).codeBlock()
-        case .table: return BlockInserter(source: source, selection: selection).insert(table, selecting: tableFirstHeader)
+        case .table(let dimensions):
+            return BlockInserter(source: source, selection: selection).insert(table(dimensions), selecting: dimensions.headers.first)
         case .horizontalRule: return BlockInserter(source: source, selection: selection).insert("---")
         case .link(let text, let destination): return link(text: text, destination: destination, in: source, selection: selection)
         }
@@ -30,11 +31,12 @@ nonisolated enum MarkdownFormatter {
 
     // MARK: - Table
 
-    private static var tableFirstHeader: String { String(localized: "Columna 1") }
-
-    private static var table: String {
-        let second = String(localized: "Columna 2")
-        return "| \(tableFirstHeader) | \(second) |\n| --- | --- |\n|  |  |"
+    private static func table(_ dimensions: TableDimensions) -> String {
+        func row(_ cells: [String]) -> String { "| " + cells.joined(separator: " | ") + " |" }
+        let header = row(dimensions.headers)
+        let delimiter = row(Array(repeating: "---", count: dimensions.columns))
+        let body = Array(repeating: row(Array(repeating: "", count: dimensions.columns)), count: dimensions.rows - 1)
+        return ([header, delimiter] + body).joined(separator: "\n")
     }
 
     // MARK: - Links

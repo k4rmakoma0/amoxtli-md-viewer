@@ -167,7 +167,7 @@ final class RichTextViewTests: XCTestCase {
     func testTableToolInsertsAnEditableTable() throws {
         let view = try makeView("Texto")
         placeCaret(after: "Texto", in: view)
-        view.apply(.table, actionName: "")
+        view.apply(.table(.standard), actionName: "")
         view.insertText("Nombre", replacementRange: view.selectedRange())
         let header = String(localized: "Columna 2")
         XCTAssertEqual(markdown(of: view), "Texto\n\n| Nombre | \(header) |\n| --- | --- |\n|  |  |\n")

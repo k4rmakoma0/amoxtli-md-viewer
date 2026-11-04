@@ -197,6 +197,82 @@ final class MarkdownParserTests: XCTestCase {
         XCTAssertEqual(try parse(source), [.table(expected)])
     }
 
+    func testAllEmptyTableBodyRowsArePreserved() throws {
+        let empty = InlineText(runs: [])
+        let expected = MarkdownTable(
+            columns: [.leading, .leading],
+            header: [text("A"), text("B")],
+            rows: Array(repeating: [empty, empty], count: 3)
+        )
+        XCTAssertEqual(try parse("| A | B |\n| --- | --- |\n| | |\n| | |\n| | |"), [.table(expected)])
+    }
+
+    func testTrailingEmptyTableRowsSurviveSerializationAndReopening() throws {
+        let source = "| A | B |\n| --- | --- |\n| x | |\n| | |\n| | |"
+        let empty = InlineText(runs: [])
+        let expected = MarkdownTable(
+            columns: [.leading, .leading],
+            header: [text("A"), text("B")],
+            rows: [[text("x"), empty], [empty, empty], [empty, empty]]
+        )
+        let parsed = try MarkdownParser().parse(source)
+        XCTAssertEqual(parsed.blocks, [.table(expected)])
+        let saved = MarkdownSerializer.markdown(from: RichDocumentBuilder.paragraphs(from: parsed))
+        XCTAssertEqual(try MarkdownParser().parse(saved), parsed)
+    }
+
+    func testHeaderOnlyTableHasNoBodyRows() throws {
+        let expected = MarkdownTable(columns: [.leading], header: [text("A")], rows: [])
+        XCTAssertEqual(try parse("| A |\n| --- |"), [.table(expected)])
+    }
+
+    func testSeparateTablesRecoverTheirOwnEmptyRows() throws {
+        let empty = InlineText(runs: [])
+        let first = MarkdownTable(columns: [.leading], header: [text("A")], rows: [[empty], [empty]])
+        let second = MarkdownTable(columns: [.leading], header: [text("B")], rows: [[empty]])
+        let source = "| A |\n| --- |\n| |\n| |\n\n| B |\n| --- |\n| |"
+        XCTAssertEqual(try parse(source), [.table(first), .table(second)])
+    }
+
+    func testTableRecoveryIgnoresTableSyntaxInsideCode() throws {
+        let code = "| Fake |\n| --- |\n| |"
+        let empty = InlineText(runs: [])
+        let table = MarkdownTable(columns: [.leading], header: [text("Real")], rows: [[empty], [empty]])
+        let source = "```\n\(code)\n```\n\n| Real |\n| --- |\n| |\n| |\n\n`| |`"
+        XCTAssertEqual(try parse(source), [
+            .codeBlock(languageHint: nil, code: code),
+            .table(table),
+            .paragraph(InlineText(runs: [InlineRun(text: "| |", style: .code)])),
+        ])
+    }
+
+    func testEmptyTableRowsInsideQuotesAndListsArePreserved() throws {
+        let empty = InlineText(runs: [])
+        let table = MarkdownTable(columns: [.leading], header: [text("A")], rows: [[empty], [empty]])
+        XCTAssertEqual(try parse("> | A |\n> | --- |\n> | |\n> | |"), [.blockQuote([.table(table)])])
+        XCTAssertEqual(try parse("- | A |\n  | --- |\n  | |\n  | |"), [
+            .unorderedList([ListItem(ordinal: 1, blocks: [.table(table)])]),
+        ])
+        XCTAssertEqual(try parse("- > | A |\n  > | --- |\n  > | |\n  > | |"), [
+            .unorderedList([ListItem(ordinal: 1, blocks: [.blockQuote([.table(table)])])]),
+        ])
+    }
+
+    func testEmptyRowOutsideAListIsNotAppendedToItsTable() throws {
+        let empty = InlineText(runs: [])
+        let table = MarkdownTable(columns: [.leading], header: [text("A")], rows: [[empty]])
+        XCTAssertEqual(try parse("- | A |\n  | --- |\n  | |\n| |"), [
+            .unorderedList([ListItem(ordinal: 1, blocks: [.table(table)])]),
+            .paragraph(text("| |")),
+        ])
+    }
+
+    func testEmptyTableRowsWithCRLFLineEndingsArePreserved() throws {
+        let empty = InlineText(runs: [])
+        let table = MarkdownTable(columns: [.leading], header: [text("A")], rows: [[empty], [empty]])
+        XCTAssertEqual(try parse("| A |\r\n| --- |\r\n| |\r\n| |\r\n"), [.table(table)])
+    }
+
     func testGFMStrikethroughIsSupported() throws {
         let expected = InlineText(runs: [InlineRun(text: "x", style: .strikethrough)])
         XCTAssertEqual(try parse("~~x~~"), [.paragraph(expected)])
