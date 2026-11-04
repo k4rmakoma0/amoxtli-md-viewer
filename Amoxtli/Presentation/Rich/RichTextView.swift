@@ -212,7 +212,16 @@ final class RichTextView: NSTextView {
 
     override func setSelectedRanges(_ ranges: [NSValue], affinity: NSSelectionAffinity, stillSelecting: Bool) {
         super.setSelectedRanges(ranges, affinity: affinity, stillSelecting: stillSelecting)
-        if !stillSelecting { updateTypingAttributes() }
+        if !stillSelecting {
+            updateTypingAttributes()
+            controller?.formatsChanged(in: self)
+        }
+    }
+
+    /// Toggling bold with nothing selected only changes the style for typing, which the
+    /// toolbar has to show too.
+    override var typingAttributes: [NSAttributedString.Key: Any] {
+        didSet { controller?.formatsChanged(in: self) }
     }
 
     /// Paragraphs are made uniform before anyone hears of the change, so the Markdown written
@@ -225,6 +234,7 @@ final class RichTextView: NSTextView {
             editRemovedText = false
             clearEmptyElementAtCaret()
         }
+        controller?.formatsChanged(in: self)
     }
 
     /// Whether the edit in progress only removes text, which is when an element may be left empty.

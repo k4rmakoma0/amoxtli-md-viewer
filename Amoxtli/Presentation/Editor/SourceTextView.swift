@@ -60,6 +60,16 @@ final class SourceTextView: NSTextView {
         undoManager?.removeAllActions(withTarget: self)
     }
 
+    override func setSelectedRanges(_ ranges: [NSValue], affinity: NSSelectionAffinity, stillSelecting: Bool) {
+        super.setSelectedRanges(ranges, affinity: affinity, stillSelecting: stillSelecting)
+        if !stillSelecting { controller?.formatsChanged(in: self) }
+    }
+
+    override func didChangeText() {
+        super.didChangeText()
+        controller?.formatsChanged(in: self)
+    }
+
     override func becomeFirstResponder() -> Bool {
         let didBecome = super.becomeFirstResponder()
         if didBecome {
@@ -100,6 +110,14 @@ final class SourceTextView: NSTextView {
 extension SourceTextView: FormattingTarget {
     var selectedText: String {
         (string as NSString).substring(with: selectedRange())
+    }
+
+    var activeFormats: ActiveFormats {
+        guard let textStorage else { return .none }
+        let selection = selectedRange()
+        let lineStart = (string as NSString).lineRange(for: NSRange(location: selection.location, length: 0)).location
+        let startsInFence = SourceHighlighter.isInFence(atLineStart: lineStart, in: textStorage)
+        return SourceFormatDetector.activeFormats(in: string, selection: selection, startsInFence: startsInFence)
     }
 
     func apply(_ command: FormatCommand, actionName: String) {

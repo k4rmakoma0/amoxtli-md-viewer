@@ -91,3 +91,25 @@ enum FormatTool: Hashable {
         }
     }
 }
+
+extension FormatTool {
+    /// Whether the tool's formatting is in effect, or `nil` for tools that only insert
+    /// something and so are never on.
+    func isActive(in formats: ActiveFormats) -> Bool? {
+        switch self {
+        case .bodyText: formats.headingLevel == 0 && !formats.isCodeBlock
+        case .heading(let level): formats.headingLevel == level
+        case .bold: formats.inline.contains(.strong)
+        case .italic: formats.inline.contains(.emphasis)
+        case .underline: formats.inline.contains(.underline)
+        case .strikethrough: formats.inline.contains(.strikethrough)
+        case .inlineCode: formats.inline.contains(.code)
+        case .quote: formats.isQuote
+        case .bulletList: formats.list == .bulleted
+        case .numberedList: formats.list == .numbered
+        case .link: formats.hasLink
+        case .codeBlock: formats.isCodeBlock
+        case .table, .horizontalRule: nil
+        }
+    }
+}

@@ -7,6 +7,40 @@ extension RichTextView: FormattingTarget {
         (string as NSString).substring(with: selectedRange())
     }
 
+    var activeFormats: ActiveFormats {
+        guard let textStorage else { return .none }
+        let selection = selectedRange()
+        let kind = kind(at: selection.location)
+        var formats = ActiveFormats()
+        if case .heading(let level) = kind.block { formats.headingLevel = level }
+        formats.isCodeBlock = kind.isCode
+        formats.isQuote = kind.containers.contains { if case .quote = $0 { true } else { false } }
+        if let item = kind.containers.last(where: { if case .listItem = $0 { true } else { false } }),
+           case .listItem(let listItem) = item {
+            formats.list = listItem.isOrdered ? .numbered : .bulleted
+        }
+        guard !kind.isCode else { return formats }
+        if selection.length == 0 {
+            // What typing would produce, which is what bold or italic with nothing selected act on.
+            formats.inline = InlineStyle(rawValue: typingAttributes[.inlineStyle] as? Int ?? 0)
+            let paragraph = textStorage.paragraphRange(at: selection.location)
+            formats.hasLink = selection.location > paragraph.location
+                && textStorage.attribute(.link, at: selection.location - 1, effectiveRange: nil) != nil
+        } else {
+            // On only when the whole selection has it, as the tools then remove it.
+            var common: InlineStyle?
+            var allLinked = true
+            textStorage.enumerateAttributes(in: selection) { attributes, _, _ in
+                let style = InlineStyle(rawValue: attributes[.inlineStyle] as? Int ?? 0)
+                common = common.map { $0.intersection(style) } ?? style
+                if attributes[.link] == nil { allLinked = false }
+            }
+            formats.inline = common ?? []
+            formats.hasLink = allLinked
+        }
+        return formats
+    }
+
     func apply(_ command: FormatCommand, actionName: String) {
         switch command {
         case .bold: toggleInline(.strong)

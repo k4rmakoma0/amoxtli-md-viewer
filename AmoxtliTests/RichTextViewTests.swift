@@ -268,4 +268,56 @@ final class RichTextViewTests: XCTestCase {
         view.apply(.numberedList, actionName: "")
         XCTAssertNil(listPrefix(of: "dos", in: view))
     }
+
+    // MARK: - Active formatting
+
+    func testCaretInsideStyledTextReportsItsStyles() throws {
+        let view = try makeView("Texto **fuerte y *mixto*** normal")
+        placeCaret(after: "mix", in: view)
+        XCTAssertEqual(view.activeFormats.inline, [.strong, .emphasis])
+        placeCaret(after: "norm", in: view)
+        XCTAssertEqual(view.activeFormats.inline, [])
+    }
+
+    func testSelectionReportsOnlyWhatAllOfItHas() throws {
+        let view = try makeView("**fuerte** suave")
+        select("fuerte", in: view)
+        XCTAssertEqual(view.activeFormats.inline, .strong)
+        select("fuerte** suave".replacingOccurrences(of: "**", with: ""), in: view)
+        XCTAssertEqual(view.activeFormats.inline, [])
+    }
+
+    func testBlocksAreReported() throws {
+        let view = try makeView("## Título\n\n> 1. citado\n\n```\ncódigo\n```")
+        placeCaret(after: "Títu", in: view)
+        XCTAssertEqual(view.activeFormats.headingLevel, 2)
+        placeCaret(after: "cita", in: view)
+        XCTAssertTrue(view.activeFormats.isQuote)
+        XCTAssertEqual(view.activeFormats.list, .numbered)
+        placeCaret(after: "códi", in: view)
+        XCTAssertTrue(view.activeFormats.isCodeBlock)
+    }
+
+    func testLinkIsReportedInsideIt() throws {
+        let view = try makeView("Ver [Amoxtli](https://amoxtli.dev) hoy")
+        placeCaret(after: "Amox", in: view)
+        XCTAssertTrue(view.activeFormats.hasLink)
+        placeCaret(after: "ho", in: view)
+        XCTAssertFalse(view.activeFormats.hasLink)
+    }
+
+    func testToolbarFollowsTheCaretThroughTheController() throws {
+        let view = try makeView("**fuerte** suave")
+        let controller = EditorController()
+        view.controller = controller
+        controller.attach(view)
+        placeCaret(after: "fuer", in: view)
+        XCTAssertTrue(controller.isActive(.bold))
+        placeCaret(after: "sua", in: view)
+        XCTAssertFalse(controller.isActive(.bold))
+        controller.perform(.bold)
+        XCTAssertTrue(controller.isActive(.bold), "Bold with nothing selected applies to typing, so it shows as on")
+        XCTAssertTrue(controller.isActive(.bodyText))
+        XCTAssertFalse(controller.isActive(.table))
+    }
 }

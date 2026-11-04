@@ -46,7 +46,8 @@ private struct ToolItem: CustomizableToolbarContent {
 
     var body: some CustomizableToolbarContent {
         ToolbarItem(id: tool.toolbarID) {
-            Button(tool.title, systemImage: tool.systemImage) { editor.perform(tool) }
+            FormatToolControl(tool: tool, editor: editor)
+                .toggleStyle(.button)
                 .help(tool.title)
                 .disabled(!editor.isAttached)
         }
@@ -93,8 +94,10 @@ private struct StyleMenu: View {
 
     var body: some View {
         Menu {
+            // A checkmark on the current style. Choosing it again keeps it, as in a word
+            // processor, instead of toggling a heading back to body text.
             ForEach(FormatTool.styles, id: \.self) { tool in
-                Button(tool.title) { editor.perform(tool) }
+                FormatToolControl(tool: tool, editor: editor, onlyTurnsOn: true, showsIcon: false)
             }
         } label: {
             Label("Estilo", systemImage: "paragraphsign")

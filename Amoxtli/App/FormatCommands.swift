@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// The Format menu, with every formatting tool and its shortcut.
+/// The Format menu, with every formatting tool and its shortcut, and a checkmark on the
+/// formatting in effect.
 struct FormatCommands: Commands {
     @FocusedValue(\.editorController) private var editor
 
@@ -9,13 +10,20 @@ struct FormatCommands: Commands {
             ForEach(Array(FormatTool.menuGroups.enumerated()), id: \.offset) { index, group in
                 if index > 0 { Divider() }
                 ForEach(group, id: \.self) { tool in
-                    Button(tool.title, systemImage: tool.systemImage) {
-                        editor?.perform(tool)
-                    }
-                    .keyboardShortcut(tool.shortcut)
-                    .disabled(!(editor?.isAttached ?? false))
+                    item(for: tool)
+                        .keyboardShortcut(tool.shortcut)
+                        .disabled(!(editor?.isAttached ?? false))
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func item(for tool: FormatTool) -> some View {
+        if let editor {
+            FormatToolControl(tool: tool, editor: editor, onlyTurnsOn: FormatTool.styles.contains(tool))
+        } else {
+            Button(tool.title, systemImage: tool.systemImage) {}
         }
     }
 }

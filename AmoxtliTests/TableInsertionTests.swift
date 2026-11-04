@@ -173,6 +173,7 @@ final class TableInsertionTests: XCTestCase {
 @MainActor
 private final class TableFormattingTarget: FormattingTarget {
     var selectedText = ""
+    var activeFormats = ActiveFormats.none
     var commands: [FormatCommand] = []
     var focusCount = 0
 

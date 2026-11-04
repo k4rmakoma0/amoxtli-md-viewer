@@ -44,7 +44,13 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
     }
 
     private func startsInFence(_ lines: NSRange, in storage: NSTextStorage) -> Bool {
-        lines.location > 0 && storage.attribute(Self.fenceKey, at: lines.location - 1, effectiveRange: nil) != nil
+        Self.isInFence(atLineStart: lines.location, in: storage)
+    }
+
+    /// Whether the line starting at a location begins inside a fenced code block, as the last
+    /// highlighting pass found it.
+    static func isInFence(atLineStart location: Int, in storage: NSAttributedString) -> Bool {
+        location > 0 && location <= storage.length && storage.attribute(fenceKey, at: location - 1, effectiveRange: nil) != nil
     }
 
     /// What the line after the edit was scanned with, worked out from how it was marked: a fence

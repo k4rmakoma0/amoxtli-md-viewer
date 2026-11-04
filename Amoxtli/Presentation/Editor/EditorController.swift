@@ -13,6 +13,8 @@ struct LinkRequest: Identifiable {
 @MainActor
 protocol FormattingTarget: AnyObject {
     var selectedText: String { get }
+    /// The formatting at the caret or across the selection.
+    var activeFormats: ActiveFormats { get }
     func apply(_ command: FormatCommand, actionName: String)
     func revealHeading(_ entry: TOCEntry, among entries: [TOCEntry])
     func focusEditor()
@@ -26,6 +28,8 @@ final class EditorController {
     /// Set to ask for a link's destination; the sheet inserts the link when it is confirmed.
     var linkRequest: LinkRequest?
     var isInsertingTable = false
+    /// The formatting where the active editor's caret is, for pressed buttons and checkmarks.
+    private(set) var activeFormats = ActiveFormats.none
 
     /// Every editor on screen. The tools act on the one used last.
     @ObservationIgnored private var targets: [WeakTarget] = []
@@ -34,11 +38,28 @@ final class EditorController {
         targets.removeAll { $0.value == nil || $0.value === target }
         targets.append(WeakTarget(value: target))
         isAttached = true
+        refreshActiveFormats()
     }
 
     func detach(_ target: any FormattingTarget) {
         targets.removeAll { $0.value == nil || $0.value === target }
         isAttached = !targets.isEmpty
+        refreshActiveFormats()
+    }
+
+    /// Called by an editor when its caret, selection or typing style changes. Only the editor
+    /// the tools act on decides what they show.
+    func formatsChanged(in target: any FormattingTarget) {
+        if target === activeTarget { refreshActiveFormats() }
+    }
+
+    func isActive(_ tool: FormatTool) -> Bool {
+        tool.isActive(in: activeFormats) ?? false
+    }
+
+    private func refreshActiveFormats() {
+        let formats = activeTarget?.activeFormats ?? .none
+        if formats != activeFormats { activeFormats = formats }
     }
 
     /// Called when an editor takes keyboard focus, so the tools follow it.
