@@ -26,9 +26,7 @@ nonisolated enum CodeColors {
     private static let attribute = dynamic("attribute", light: 0x815F03, dark: 0xCC9768)
 
     private static func dynamic(_ name: String, light: Int, dark: Int) -> NSColor {
-        NSColor(name: "dev.alananaya.amoxtli.code.\(name)") { appearance in
-            appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? rgb(dark) : rgb(light)
-        }
+        NSColor.adaptive("code.\(name)") { isDark, _ in isDark ? rgb(dark) : rgb(light) }
     }
 
     private static func rgb(_ value: Int) -> NSColor {

@@ -251,6 +251,9 @@ final class RichTextView: NSTextView {
 
     override func drawBackground(in rect: NSRect) {
         super.drawBackground(in: rect)
+        (layoutManager as? RichLayoutManager)?.drawTables(in: rect, at: textContainerOrigin) {
+            backingAlignedRect($0, options: .alignAllEdgesNearest)
+        }
         (layoutManager as? RichLayoutManager)?.emptyLastLineKind = emptyLastLineKind
         (layoutManager as? RichLayoutManager)?.drawLeadingCodeStrip(at: textContainerOrigin)
         guard let kind = emptyLastLineKind, let layoutManager = layoutManager as? RichLayoutManager else { return }

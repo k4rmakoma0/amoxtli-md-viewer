@@ -146,7 +146,7 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
             storage.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: span.range)
         case .inlineCode, .codeBlock:
             storage.addAttribute(.font, value: typography.code, range: span.range)
-            storage.addAttribute(.backgroundColor, value: NSColor.quaternarySystemFill, range: span.range)
+            storage.addAttribute(.backgroundColor, value: SurfaceColors.codeBackground, range: span.range)
         case .linkText:
             storage.addAttribute(.foregroundColor, value: NSColor.linkColor, range: span.range)
         case .quote:

@@ -17,6 +17,7 @@ nonisolated final class RichStyler {
     var listIndent: CGFloat { 26 * typography.size.scale }
     var quoteIndent: CGFloat { 20 * typography.size.scale }
     let codePadding: CGFloat = 12
+    let tableBorderWidth: CGFloat = 1
 
     /// Every code block starts with a strip holding a chip with its language, which opens
     /// the menu to choose it.
@@ -41,7 +42,7 @@ nonisolated final class RichStyler {
         let effective = kind.isCode ? [] : style
         if effective.contains(.underline) { attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue }
         if effective.contains(.strikethrough) { attributes[.strikethroughStyle] = NSUnderlineStyle.single.rawValue }
-        if effective.contains(.code) { attributes[.backgroundColor] = NSColor.quaternarySystemFill }
+        if effective.contains(.code) { attributes[.backgroundColor] = SurfaceColors.codeBackground }
         if let link { attributes[.link] = link }
         return attributes
     }
@@ -62,7 +63,7 @@ nonisolated final class RichStyler {
                 storage.addAttribute(.font, value: font(for: kind, style: style), range: run)
                 set(.underlineStyle, NSUnderlineStyle.single.rawValue, if: style.contains(.underline), in: run, of: storage)
                 set(.strikethroughStyle, NSUnderlineStyle.single.rawValue, if: style.contains(.strikethrough), in: run, of: storage)
-                set(.backgroundColor, NSColor.quaternarySystemFill, if: style.contains(.code), in: run, of: storage)
+                set(.backgroundColor, SurfaceColors.codeBackground, if: style.contains(.code), in: run, of: storage)
             }
             if case .code(let id, _) = kind.block, codeBlocks[id] == nil {
                 codeBlocks[id] = (paragraph.location, kind)
@@ -197,12 +198,14 @@ nonisolated final class RichStyler {
     private func block(for cell: RichTableCell) -> NSTextTableBlock {
         if let cached = cells[cell] { return cached }
         let block = NSTextTableBlock(table: table(for: cell), startingRow: cell.row, rowSpan: 1, startingColumn: cell.column, columnSpan: 1)
-        block.setWidth(1, type: .absoluteValueType, for: .border)
-        block.setBorderColor(.separatorColor)
-        block.setWidth(6, type: .absoluteValueType, for: .padding)
-        if cell.row == 0 {
-            block.backgroundColor = .quaternarySystemFill
+        // Room for the lines, which the layout manager draws, on the top and leading edges
+        // and on the trailing edge of the last column. The bottom line sits in the padding.
+        block.setWidth(tableBorderWidth, type: .absoluteValueType, for: .border, edge: .minX)
+        block.setWidth(tableBorderWidth, type: .absoluteValueType, for: .border, edge: .minY)
+        if cell.column == cell.alignments.count - 1 {
+            block.setWidth(tableBorderWidth, type: .absoluteValueType, for: .border, edge: .maxX)
         }
+        block.setWidth(6, type: .absoluteValueType, for: .padding)
         cells[cell] = block
         return block
     }
@@ -211,7 +214,7 @@ nonisolated final class RichStyler {
         if let cached = tables[cell.tableID] { return cached }
         let table = NSTextTable()
         table.numberOfColumns = cell.alignments.count
-        table.collapsesBorders = true
+        table.collapsesBorders = false
         table.layoutAlgorithm = .automaticLayoutAlgorithm
         tables[cell.tableID] = table
         return table

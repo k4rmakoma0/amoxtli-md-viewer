@@ -93,6 +93,72 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
         return rects
     }
 
+    // MARK: - Tables
+
+    /// TextKit draws a cell's borders and background only while it redraws that cell's text,
+    /// so lines between cells vanished when the view repainted part of a table, and a
+    /// translucent line drawn twice where cells meet looked different from one drawn once.
+    /// Each table that reaches the area being drawn is drawn whole instead, each line once.
+    func drawTables(in rect: NSRect, at origin: NSPoint, align: (NSRect) -> NSRect) {
+        guard let textStorage, let styler, let container = textContainers.first, textStorage.length > 0 else { return }
+        // Reaches the cells around the area too, as it may fall between their lines of text.
+        let area = rect.offsetBy(dx: -origin.x, dy: -origin.y).insetBy(dx: 0, dy: -4 * CGFloat(styler.typography.size.points))
+        let characters = characterRange(forGlyphRange: glyphRange(forBoundingRect: area, in: container), actualGlyphRange: nil)
+        var drawn: Set<ObjectIdentifier> = []
+        for paragraph in textStorage.paragraphRanges(in: characters) {
+            guard let table = tableBlock(at: paragraph.location)?.table, drawn.insert(ObjectIdentifier(table)).inserted else { continue }
+            drawTable(table, at: paragraph.location, origin: origin, styler: styler, align: align)
+        }
+    }
+
+    private func tableBlock(at location: Int) -> NSTextTableBlock? {
+        guard let textStorage, location < textStorage.length else { return nil }
+        let style = textStorage.attribute(.paragraphStyle, at: location, effectiveRange: nil) as? NSParagraphStyle
+        return style?.textBlocks.first as? NSTextTableBlock
+    }
+
+    private func drawTable(_ table: NSTextTable, at location: Int, origin: NSPoint, styler: RichStyler, align: (NSRect) -> NSRect) {
+        guard let textStorage else { return }
+        let cells = cellBounds(in: textStorage.range(of: table, at: location)).map { (block: $0.block, rect: $0.rect.offsetBy(dx: origin.x, dy: origin.y)) }
+        guard let first = cells.first?.rect else { return }
+        let bounds = cells.dropFirst().reduce(first) { $0.union($1.rect) }
+        let header = cells.filter { $0.block.startingRow == 0 }.map(\.rect)
+        if let firstHeader = header.first {
+            SurfaceColors.tableHeader.setFill()
+            align(header.dropFirst().reduce(firstHeader) { $0.union($1) }).fill()
+        }
+        let width = styler.tableBorderWidth
+        var lines: [NSRect] = cells.flatMap { cell in
+            [NSRect(x: cell.rect.minX, y: cell.rect.minY, width: cell.rect.width, height: width),
+             NSRect(x: cell.rect.minX, y: cell.rect.minY, width: width, height: cell.rect.height)]
+        }
+        lines.append(NSRect(x: bounds.maxX - width, y: bounds.minY, width: width, height: bounds.height))
+        lines.append(NSRect(x: bounds.minX, y: bounds.maxY - width, width: bounds.width, height: width))
+        // Aligned to pixels and filled as one shape, so where lines cross they aren't darker.
+        let path = NSBezierPath()
+        path.windingRule = .nonZero
+        for line in lines {
+            path.appendRect(align(line))
+        }
+        SurfaceColors.tableBorder.setFill()
+        path.fill()
+    }
+
+    /// Each cell's whole rectangle, borders and padding included, in container coordinates.
+    /// Two paragraphs in one cell share its block, so each block is measured once.
+    private func cellBounds(in range: NSRange) -> [(block: NSTextTableBlock, rect: NSRect)] {
+        guard let textStorage else { return [] }
+        var seen: Set<ObjectIdentifier> = []
+        var cells: [(block: NSTextTableBlock, rect: NSRect)] = []
+        for paragraph in textStorage.paragraphRanges(in: range) {
+            guard let block = tableBlock(at: paragraph.location), seen.insert(ObjectIdentifier(block)).inserted else { continue }
+            let glyph = glyphIndexForCharacter(at: paragraph.location)
+            let rect = boundsRect(for: block, at: glyph, effectiveRange: nil)
+            if !rect.isEmpty { cells.append((block, rect)) }
+        }
+        return cells
+    }
+
     // MARK: - Code blocks
 
     private let codePaddingY: CGFloat = 6
@@ -159,7 +225,7 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
         corner(of: path, at: NSPoint(x: rect.maxX, y: rect.maxY), toward: NSPoint(x: rect.minX, y: rect.maxY), radius: roundsBottom ? radius : 0)
         corner(of: path, at: NSPoint(x: rect.minX, y: rect.maxY), toward: NSPoint(x: rect.minX, y: rect.minY), radius: roundsBottom ? radius : 0)
         path.close()
-        NSColor.quaternarySystemFill.setFill()
+        SurfaceColors.codeBackground.setFill()
         path.fill()
     }
 
