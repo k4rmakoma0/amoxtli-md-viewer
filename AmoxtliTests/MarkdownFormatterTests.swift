@@ -124,6 +124,17 @@ final class MarkdownFormatterTests: XCTestCase {
         XCTAssertEqual(format(.bulletList, "«  uno»"), "«  - uno»")
     }
 
+    func testListsAndQuoteStartOnAnEmptyLine() {
+        XCTAssertEqual(format(.bulletList, "‸"), "- ‸")
+        XCTAssertEqual(format(.numberedList, "‸"), "1. ‸")
+        XCTAssertEqual(format(.quote, "‸"), "> ‸")
+        XCTAssertEqual(format(.bulletList, "texto\n\n‸"), "texto\n\n- ‸")
+    }
+
+    func testEmptyItemTogglesBackOff() {
+        XCTAssertEqual(format(.bulletList, "- ‸"), "‸")
+    }
+
     func testSelectionEndingAtLineStartLeavesNextLineAlone() {
         XCTAssertEqual(format(.bulletList, "«uno\n»dos"), "«- uno»\ndos")
     }

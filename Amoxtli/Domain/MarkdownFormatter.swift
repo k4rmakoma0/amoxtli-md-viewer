@@ -160,7 +160,9 @@ private nonisolated struct LineEditor {
         if isQuoted, block.lines.contains(where: isContent) {
             return replacingPrefixes(matching: Self.quotePrefix) { _ in "" }
         }
-        return replacingPrefixes(matching: /^/) { line in isContent(line) ? "> " : ">" }
+        // A single empty line is where the person starts typing, so it gets the space too.
+        let startsEmptyLine = block.lines.count == 1
+        return replacingPrefixes(matching: /^/) { line in isContent(line) || startsEmptyLine ? "> " : ">" }
     }
 
     func bulletList() -> TextEdit {
@@ -211,9 +213,12 @@ private nonisolated struct LineEditor {
 
     /// Replaces each line's list marker, numbering the lines with content from 1.
     private func replacingListMarkers(_ marker: @escaping (_ ordinal: Int, _ indentation: String) -> String) -> TextEdit {
+        let startsEmptyLine = block.lines.count == 1
         var ordinal = 0
         return transformingLines { line in
-            guard isContent(line) else { return (line, 0, 0) }
+            // Several lines at once leave the empty ones alone, but a single empty line is
+            // where the person starts typing the first item.
+            guard isContent(line) || startsEmptyLine else { return (line, 0, 0) }
             ordinal += 1
             let match = line.firstMatch(of: Self.listPrefix)
             let indentation = match.map { String($0.1) } ?? String(line.prefix { $0 == " " || $0 == "\t" })

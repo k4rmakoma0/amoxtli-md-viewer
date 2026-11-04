@@ -80,4 +80,13 @@ final class SourceEditorReturnTests: XCTestCase {
         view.insertNewline(nil)
         XCTAssertEqual(view.string, "texto\n")
     }
+
+    func testListStartedWithTheToolContinuesWithReturn() {
+        let view = makeView("")
+        view.apply(.bulletList, actionName: "")
+        view.insertText("uno", replacementRange: view.selectedRange())
+        view.insertNewline(nil)
+        view.insertText("dos", replacementRange: view.selectedRange())
+        XCTAssertEqual(view.string, "- uno\n- dos")
+    }
 }
