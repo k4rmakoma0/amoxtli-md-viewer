@@ -208,6 +208,51 @@ final class RichHeadingInputTests: XCTestCase {
         XCTAssertEqual(markdown(of: view), "# 見出し\n")
     }
 
+    // MARK: - Deleting a heading's text
+
+    func testDeletingATypedHeadingsTextLeavesBodyText() throws {
+        let view = try makeView()
+        type("# a", in: view)
+        view.deleteBackward(nil)
+        XCTAssertEqual((view.typingAttributes[.richParagraph] as? RichParagraphKind)?.block, .paragraph)
+        type("b", in: view)
+        XCTAssertEqual(markdown(of: view), "b\n")
+    }
+
+    func testDeletingAHeadingsTextAfterOtherParagraphsLeavesBodyText() throws {
+        let view = try makeView("Texto")
+        view.setSelectedRange(NSRange(location: view.string.utf16.count, length: 0))
+        view.insertNewline(nil)
+        type("## a", in: view)
+        view.deleteBackward(nil)
+        type("b", in: view)
+        XCTAssertEqual(markdown(of: view), "Texto\n\nb\n")
+    }
+
+    func testDeletingAllOfAnExistingHeadingLeavesBodyText() throws {
+        let view = try makeView("# Título\n\nTexto")
+        view.setSelectedRange((view.string as NSString).range(of: "Título"))
+        view.deleteBackward(nil)
+        XCTAssertEqual(view.kind(at: 0).block, .paragraph)
+        type("x", in: view)
+        XCTAssertEqual(markdown(of: view), "x\n\nTexto\n")
+    }
+
+    func testDeletingPartOfAHeadingKeepsIt() throws {
+        let view = try makeView()
+        type("# ab", in: view)
+        view.deleteBackward(nil)
+        type("c", in: view)
+        XCTAssertEqual(markdown(of: view), "# ac\n")
+    }
+
+    func testHeadingChosenForAnEmptyParagraphWaitsForText() throws {
+        let view = try makeView()
+        view.apply(.heading(2), actionName: "")
+        type("a", in: view)
+        XCTAssertEqual(markdown(of: view), "## a\n")
+    }
+
     func testReturnAfterTypedHeadingContinuesWithBodyText() throws {
         let view = try makeView()
         type("# Título", in: view)

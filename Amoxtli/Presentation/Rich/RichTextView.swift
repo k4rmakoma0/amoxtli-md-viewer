@@ -221,6 +221,38 @@ final class RichTextView: NSTextView {
         if let textStorage { normalizer.normalizePending(in: textStorage) }
         updateListAccessibility()
         super.didChangeText()
+        if editRemovedText {
+            editRemovedText = false
+            clearEmptyHeadingAtCaret()
+        }
+    }
+
+    /// Whether the edit in progress only removes text, which is when a heading may be left empty.
+    private var editRemovedText = false
+
+    override func shouldChangeText(in affectedCharRange: NSRange, replacementString: String?) -> Bool {
+        let shouldChange = super.shouldChangeText(in: affectedCharRange, replacementString: replacementString)
+        if shouldChange {
+            editRemovedText = affectedCharRange.length > 0 && replacementString?.isEmpty == true
+        }
+        return shouldChange
+    }
+
+    /// Deleting all of a heading's text deletes the heading too: what is typed next is body
+    /// text. Without this, the empty paragraph and the style kept for typing stay a heading
+    /// until the caret moves. A heading chosen for an empty paragraph isn't touched, since
+    /// choosing it removes no text.
+    private func clearEmptyHeadingAtCaret() {
+        guard let textStorage, selectedRange().length == 0 else { return }
+        let caret = selectedRange().location
+        let paragraph = textStorage.paragraphRange(at: caret)
+        guard textStorage.contentRange(of: paragraph).length == 0 else { return }
+        let current = paragraph.length > 0
+            ? textStorage.paragraphKind(at: paragraph.location)
+            : typingAttributes[.richParagraph] as? RichParagraphKind
+        guard let current, case .heading = current.block else { return }
+        setKind(current.with(block: .paragraph), ofParagraphAt: caret)
+        if paragraph.length > 0 { updateTypingAttributes() }
     }
 
     override func becomeFirstResponder() -> Bool {
