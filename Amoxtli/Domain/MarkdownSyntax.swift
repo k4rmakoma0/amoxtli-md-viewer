@@ -172,7 +172,10 @@ nonisolated enum MarkdownSyntaxScanner {
         nonisolated(unsafe) static let link = make(#"(!?\[)([^\]\n]*)(\]\()([^)\n]*)(\))"#)
         nonisolated(unsafe) static let wrapped: [(NSRegularExpression, SyntaxKind)] = [
             (make(#"(\*\*|__)(?=\S)(.+?)(?<=\S)(\1)"#), .strong),
-            (make(#"(?<![*_\w])([*_])(?![*_\s])(.+?)(?<![*_\s])(\1)(?![*_\w])"#), .emphasis),
+            // One pattern per marker: each only has to stay clear of its own character, so
+            // `_italic_` can sit right inside `**bold**` and the other way around.
+            (make(#"(?<![*\\])(\*)(?![*\s])(.+?)(?<![*\s\\])(\*)(?!\*)"#), .emphasis),
+            (make(#"(?<![_\w\\])(_)(?![_\s])(.+?)(?<![_\s\\])(_)(?![_\w])"#), .emphasis),
             (make(#"(~~)(?=\S)(.+?)(?<=\S)(~~)"#), .strikethrough),
             (make(#"(<u>)(.+?)(</u>)"#, options: .caseInsensitive), .underline),
         ]

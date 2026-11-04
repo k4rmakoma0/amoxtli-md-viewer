@@ -3,7 +3,8 @@ import XCTest
 
 final class MarkdownSyntaxTests: XCTestCase {
     private func spans(_ text: String, _ kind: SyntaxKind) -> [NSRange] {
-        MarkdownSyntaxScanner.scan(text).spans.filter { $0.kind == kind }.map(\.range)
+        // In text order: the scanner reports spans by the pattern that found them.
+        MarkdownSyntaxScanner.scan(text).spans.filter { $0.kind == kind }.map(\.range).sorted { $0.location < $1.location }
     }
 
     private func range(_ location: Int, _ length: Int) -> NSRange {
