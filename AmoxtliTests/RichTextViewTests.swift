@@ -151,6 +151,51 @@ final class RichTextViewTests: XCTestCase {
         XCTAssertEqual(markdown(of: view), "- un\n")
     }
 
+    // MARK: - Code blocks
+
+    func testReturnAddsBlankLinesInsideACodeBlock() throws {
+        let view = try makeView("```\nuno\n```\n\nfin")
+        placeCaret(after: "uno", in: view)
+        view.insertNewline(nil)
+        view.insertNewline(nil)
+        view.insertText("dos", replacementRange: view.selectedRange())
+        XCTAssertEqual(markdown(of: view), "```\nuno\n\ndos\n```\n\nfin\n")
+    }
+
+    func testReturnAtTheEndOfTheDocumentStaysInTheCodeBlock() throws {
+        let view = try makeView("```\nuno\n```")
+        placeCaret(after: "uno", in: view)
+        view.insertNewline(nil)
+        view.insertNewline(nil)
+        view.insertText("dos", replacementRange: view.selectedRange())
+        XCTAssertEqual(markdown(of: view), "```\nuno\n\ndos\n```\n")
+    }
+
+    func testDownArrowLeavesACodeBlockAtTheEnd() throws {
+        let view = try makeView("```\nuno\n```")
+        placeCaret(after: "uno", in: view)
+        view.moveDown(nil)
+        view.insertText("texto", replacementRange: view.selectedRange())
+        XCTAssertEqual(markdown(of: view), "```\nuno\n```\n\ntexto\n")
+    }
+
+    func testDownArrowFromAnEmptyLastCodeLineLeavesTheBlock() throws {
+        let view = try makeView("```\nuno\n```")
+        placeCaret(after: "uno", in: view)
+        view.insertNewline(nil)
+        view.moveDown(nil)
+        view.insertText("texto", replacementRange: view.selectedRange())
+        XCTAssertEqual(markdown(of: view), "```\nuno\n```\n\ntexto\n")
+    }
+
+    func testDownArrowInsideACodeBlockMovesToTheNextLine() throws {
+        let view = try makeView("```\nuno\ndos\n```")
+        placeCaret(after: "uno", in: view)
+        view.moveDown(nil)
+        XCTAssertTrue(view.kind(at: view.selectedRange().location).isCode)
+        XCTAssertEqual(markdown(of: view), "```\nuno\ndos\n```\n")
+    }
+
     // MARK: - Tab
 
     func testTabNestsAnItemUnderTheOneAbove() throws {

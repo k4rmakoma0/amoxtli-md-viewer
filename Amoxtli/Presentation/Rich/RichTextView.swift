@@ -337,10 +337,12 @@ final class RichTextView: NSTextView {
         }
     }
 
+    /// Return in a code block always adds a line, blank ones included: code needs them. Down
+    /// arrow on the block's last line is how to leave it.
     override func insertNewline(_ sender: Any?) {
         guard let textStorage else { return super.insertNewline(sender) }
         let caret = selectedRange()
-        let kind = kind(at: caret.location)
+        let kind = caret.length == 0 ? kindAtCaret : kind(at: caret.location)
         let paragraph = textStorage.paragraphRange(at: caret.location)
         let content = textStorage.contentRange(of: paragraph)
         if kind.tableCell != nil, moveToCell(after: paragraph) { return }
@@ -348,15 +350,58 @@ final class RichTextView: NSTextView {
         if caret.length == 0, content.length == 0, !kind.containers.isEmpty, kind.isText {
             return setKind(kind.with(containers: outdented(kind.containers)), ofParagraphAt: caret.location)
         }
-        if kind.isCode, content.length == 0, caret.location > 0, self.kind(at: caret.location - 1) == kind {
-            return setKind(kind.with(block: .paragraph), ofParagraphAt: caret.location)
-        }
         let isAtEnd = caret.location == NSMaxRange(content)
         super.insertNewline(sender)
         let next = kindAfterNewline(from: kind, isAtEnd: isAtEnd)
-        if next != kind {
+        // A new empty last line has no characters to keep its kind, so it is always set.
+        let isNewLastLine = textStorage.paragraphRange(at: selectedRange().location).length == 0
+        if next != kind || isNewLastLine {
             setKind(next, ofParagraphAt: selectedRange().location)
         }
+    }
+
+    /// Down arrow on the last line of a code block at the end of the text leaves the block for
+    /// a body line below it. Anywhere else it moves as usual.
+    override func moveDown(_ sender: Any?) {
+        guard let textStorage, selectedRange().length == 0 else { return super.moveDown(sender) }
+        let caret = selectedRange().location
+        let kind = kindAtCaret
+        let paragraph = textStorage.paragraphRange(at: caret)
+        let isLastParagraph = NSMaxRange(paragraph) == textStorage.length && textStorage.contentRange(of: paragraph).length == paragraph.length
+        guard kind.isCode, isLastParagraph, isOnLastLine(of: paragraph) else { return super.moveDown(sender) }
+        let body = kind.with(block: .paragraph)
+        if paragraph.length > 0 {
+            let lineBreak = NSAttributedString(string: "\n", attributes: styler.attributes(for: kind, style: []))
+            let end = NSRange(location: textStorage.length, length: 0)
+            guard shouldChangeText(in: end, replacementString: "\n") else { return }
+            textStorage.replaceCharacters(in: end, with: lineBreak)
+            didChangeText()
+            setSelectedRange(NSRange(location: textStorage.length, length: 0))
+        }
+        setKind(body, ofParagraphAt: textStorage.length)
+        scrollRangeToVisible(selectedRange())
+    }
+
+    /// The kind where the caret is. On the empty last line, which has no characters, that is the
+    /// kind kept for typing.
+    private var kindAtCaret: RichParagraphKind {
+        guard let textStorage else { return .body }
+        let caret = selectedRange().location
+        if caret == textStorage.length, textStorage.paragraphRange(at: caret).length == 0,
+           let typing = typingAttributes[.richParagraph] as? RichParagraphKind {
+            return typing
+        }
+        return kind(at: caret)
+    }
+
+    private func isOnLastLine(of paragraph: NSRange) -> Bool {
+        guard let textStorage, let layoutManager else { return true }
+        let content = textStorage.contentRange(of: paragraph)
+        guard content.length > 0 else { return true }
+        let caretGlyph = layoutManager.glyphIndexForCharacter(at: min(selectedRange().location, NSMaxRange(content) - 1))
+        let lastGlyph = layoutManager.glyphIndexForCharacter(at: NSMaxRange(content) - 1)
+        return layoutManager.lineFragmentRect(forGlyphAt: caretGlyph, effectiveRange: nil).minY
+            == layoutManager.lineFragmentRect(forGlyphAt: lastGlyph, effectiveRange: nil).minY
     }
 
     private func kindAfterNewline(from kind: RichParagraphKind, isAtEnd: Bool) -> RichParagraphKind {
