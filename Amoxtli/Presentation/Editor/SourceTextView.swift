@@ -70,6 +70,21 @@ final class SourceTextView: NSTextView {
         controller?.formatsChanged(in: self)
     }
 
+    /// Return continues a list or quote with the next marker, and ends it on an empty item.
+    /// Applied as typing, so it undoes like any other keystroke.
+    override func insertNewline(_ sender: Any?) {
+        guard let textStorage else { return super.insertNewline(sender) }
+        let selection = selectedRange()
+        let lineStart = (string as NSString).lineRange(for: NSRange(location: selection.location, length: 0)).location
+        let startsInFence = SourceHighlighter.isInFence(atLineStart: lineStart, in: textStorage)
+        guard let edit = SourceListContinuation.edit(in: string, selection: selection, startsInFence: startsInFence) else {
+            return super.insertNewline(sender)
+        }
+        insertText(edit.replacement, replacementRange: edit.range)
+        setSelectedRange(edit.selection)
+        scrollRangeToVisible(edit.selection)
+    }
+
     override func becomeFirstResponder() -> Bool {
         let didBecome = super.becomeFirstResponder()
         if didBecome {
