@@ -10,12 +10,14 @@ struct FolderWindowView: View {
     @State private var fileEditor = FolderFileEditor()
     @State private var editor = EditorController()
     @SceneStorage("editorMode") private var mode = EditorMode.formatted
+    @SceneStorage("isSidebarPresented") private var isSidebarPresented = true
 
     var body: some View {
         content
             .navigationTitle(viewModel.folderName ?? String(localized: "Carpeta"))
             .frame(minWidth: 640, minHeight: 360)
             .toolbar(id: "folder") {
+                SidebarToolbarItem(isPresented: $isSidebarPresented)
                 OpenToolbarItem()
                 EditorToolbar(mode: $mode, editor: editor)
             }
@@ -65,7 +67,7 @@ struct FolderWindowView: View {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .loaded(let sections):
-                FolderBrowserView(sections: sections, viewModel: viewModel, fileEditor: fileEditor, editor: editor, mode: $mode)
+                FolderBrowserView(sections: sections, viewModel: viewModel, fileEditor: fileEditor, editor: editor, mode: $mode, isSidebarPresented: $isSidebarPresented)
             case .empty:
                 FolderUnavailableView(reason: .noMarkdownFiles, onChooseFolder: chooseFolder)
             case .failed(let error):

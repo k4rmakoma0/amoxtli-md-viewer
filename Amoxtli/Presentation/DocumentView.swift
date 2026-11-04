@@ -19,6 +19,7 @@ struct DocumentView: View {
             detail
         }
         .toolbar(id: "document") {
+            SidebarToolbarItem(isPresented: $isSidebarPresented)
             OpenToolbarItem()
             EditorToolbar(mode: $mode, editor: editor)
         }

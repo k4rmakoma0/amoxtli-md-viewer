@@ -10,6 +10,9 @@ struct ReaderSplitView<Sidebar: View, Detail: View>: View {
         NavigationSplitView(columnVisibility: columnVisibility) {
             sidebar
                 .navigationSplitViewColumnWidth(min: 200, ideal: 260, max: 420)
+                // The window declares the sidebar button alongside its other customizable
+                // items. A separate child toolbar duplicates it across document windows.
+                .toolbar(removing: .sidebarToggle)
         } detail: {
             detail
         }

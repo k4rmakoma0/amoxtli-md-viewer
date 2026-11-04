@@ -6,11 +6,11 @@ struct FolderBrowserView: View {
     @Bindable var fileEditor: FolderFileEditor
     let editor: EditorController
     @Binding var mode: EditorMode
+    @Binding var isSidebarPresented: Bool
 
     @State private var document = DocumentViewModel()
     @State private var links = LinkInteractionViewModel()
     @SceneStorage("sidebarTab") private var sidebarTab = SidebarTab.files
-    @SceneStorage("isSidebarPresented") private var isSidebarPresented = true
 
     var body: some View {
         ReaderSplitView(isSidebarPresented: $isSidebarPresented) {
