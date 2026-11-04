@@ -223,11 +223,11 @@ final class RichTextView: NSTextView {
         super.didChangeText()
         if editRemovedText {
             editRemovedText = false
-            clearEmptyHeadingAtCaret()
+            clearEmptyElementAtCaret()
         }
     }
 
-    /// Whether the edit in progress only removes text, which is when a heading may be left empty.
+    /// Whether the edit in progress only removes text, which is when an element may be left empty.
     private var editRemovedText = false
 
     override func shouldChangeText(in affectedCharRange: NSRange, replacementString: String?) -> Bool {
@@ -238,11 +238,13 @@ final class RichTextView: NSTextView {
         return shouldChange
     }
 
-    /// Deleting all of a heading's text deletes the heading too: what is typed next is body
-    /// text. Without this, the empty paragraph and the style kept for typing stay a heading
-    /// until the caret moves. A heading chosen for an empty paragraph isn't touched, since
-    /// choosing it removes no text.
-    private func clearEmptyHeadingAtCaret() {
+    /// Deleting all of an element's text deletes the element too: a heading, a list item, a
+    /// quote or a code block left empty becomes body text, and so does what is typed next.
+    /// Without this, the empty paragraph and the style kept for typing stay that element until
+    /// the caret moves. Two empty lines keep what they are, since emptiness is part of them: a
+    /// table cell, and a blank line between other lines of a code block. An element chosen for
+    /// an empty paragraph isn't touched either, since choosing it removes no text.
+    private func clearEmptyElementAtCaret() {
         guard let textStorage, selectedRange().length == 0 else { return }
         let caret = selectedRange().location
         let paragraph = textStorage.paragraphRange(at: caret)
@@ -250,9 +252,16 @@ final class RichTextView: NSTextView {
         let current = paragraph.length > 0
             ? textStorage.paragraphKind(at: paragraph.location)
             : typingAttributes[.richParagraph] as? RichParagraphKind
-        guard let current, case .heading = current.block else { return }
-        setKind(current.with(block: .paragraph), ofParagraphAt: caret)
+        guard let current, current != .body, current.tableCell == nil else { return }
+        if current.isCode, isInsideLongerCodeBlock(paragraph, kind: current, in: textStorage) { return }
+        setKind(.body, ofParagraphAt: caret)
         if paragraph.length > 0 { updateTypingAttributes() }
+    }
+
+    private func isInsideLongerCodeBlock(_ paragraph: NSRange, kind: RichParagraphKind, in textStorage: NSTextStorage) -> Bool {
+        let before = paragraph.location > 0 ? textStorage.paragraphKind(at: paragraph.location - 1) : nil
+        let after = textStorage.paragraphKind(at: NSMaxRange(paragraph))
+        return before == kind || after == kind
     }
 
     override func becomeFirstResponder() -> Bool {

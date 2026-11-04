@@ -97,6 +97,60 @@ final class RichTextViewTests: XCTestCase {
         XCTAssertEqual(markdown(of: view), "# TítuloTexto\n")
     }
 
+    // MARK: - Deleting all of an element's text
+
+    /// Selects a paragraph's text and deletes it, then types in the emptied line.
+    private func replaceText(_ text: String, with typed: String, in view: RichTextView) {
+        select(text, in: view)
+        view.deleteBackward(nil)
+        view.insertText(typed, replacementRange: view.selectedRange())
+    }
+
+    func testEmptiedListItemBecomesBodyText() throws {
+        let view = try makeView("- uno")
+        replaceText("uno", with: "texto", in: view)
+        XCTAssertEqual(markdown(of: view), "texto\n")
+    }
+
+    func testEmptiedItemInTheMiddleLeavesTheOtherItems() throws {
+        let view = try makeView("1. uno\n2. dos\n3. tres")
+        replaceText("dos", with: "texto", in: view)
+        XCTAssertEqual(markdown(of: view), "1. uno\n\ntexto\n\n2. tres\n")
+    }
+
+    func testEmptiedQuoteBecomesBodyText() throws {
+        let view = try makeView("> cita")
+        replaceText("cita", with: "texto", in: view)
+        XCTAssertEqual(markdown(of: view), "texto\n")
+    }
+
+    func testEmptiedSingleLineCodeBlockBecomesBodyText() throws {
+        let view = try makeView("```\ncódigo\n```")
+        replaceText("código", with: "texto", in: view)
+        XCTAssertEqual(markdown(of: view), "texto\n")
+    }
+
+    func testEmptiedLineInsideLongerCodeBlockStaysCode() throws {
+        let view = try makeView("```\nuno\ndos\ntres\n```")
+        select("dos", in: view)
+        view.deleteBackward(nil)
+        XCTAssertEqual(markdown(of: view), "```\nuno\n\ntres\n```\n")
+    }
+
+    func testEmptiedTableCellStaysInTheTable() throws {
+        let view = try makeView("| A | B |\n|---|---|\n| 1 | 2 |")
+        select("1", in: view)
+        view.deleteBackward(nil)
+        XCTAssertEqual(markdown(of: view), "| A | B |\n| --- | --- |\n|  | 2 |\n")
+    }
+
+    func testDeletingPartOfAnItemKeepsIt() throws {
+        let view = try makeView("- uno")
+        placeCaret(after: "uno", in: view)
+        view.deleteBackward(nil)
+        XCTAssertEqual(markdown(of: view), "- un\n")
+    }
+
     // MARK: - Tab
 
     func testTabNestsAnItemUnderTheOneAbove() throws {
