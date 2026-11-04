@@ -239,6 +239,24 @@ final class RichTextView: NSTextView {
 
     // MARK: - Keys
 
+    override func insertText(_ insertString: Any, replacementRange: NSRange) {
+        // insertText commits an input method's composition; setMarkedText owns the interim
+        // characters. A commit without an explicit range replaces that composition in full.
+        let implicitRange = hasMarkedText() ? markedRange() : selectedRange()
+        let range = replacementRange.location == NSNotFound ? implicitRange : replacementRange
+        if selectedRanges.count == 1, let textStorage,
+           let replacement = RichHeadingInput.replacement(
+               for: insertString, in: textStorage, range: range,
+               kind: kind(at: range.location), typingAttributes: typingAttributes
+           ) {
+            // Replace only the prefix through the typed text. AppKit keeps the caret at its
+            // end and records both the removed syntax and the new kind in the same undo step.
+            super.insertText(replacement.text, replacementRange: replacement.range)
+        } else {
+            super.insertText(insertString, replacementRange: replacementRange)
+        }
+    }
+
     override func insertNewline(_ sender: Any?) {
         guard let textStorage else { return super.insertNewline(sender) }
         let caret = selectedRange()

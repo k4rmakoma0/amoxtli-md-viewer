@@ -181,11 +181,11 @@ final class RichTextViewTests: XCTestCase {
         XCTAssertEqual(markdown(of: view), "Texto\n\n---\n\ndespués\n")
     }
 
-    func testTypedSyntaxStaysText() throws {
+    func testOtherTypedSyntaxStaysTextInsideAnAutomaticHeading() throws {
         let view = try makeView("")
-        view.insertText("# no es título *ni cursiva*", replacementRange: view.selectedRange())
+        view.insertText("# Título *sin cursiva*", replacementRange: view.selectedRange())
         let written = markdown(of: view)
-        XCTAssertEqual(try MarkdownParser().parse(written).blocks, [.paragraph(InlineText(runs: [InlineRun(text: "# no es título *ni cursiva*")]))])
+        XCTAssertEqual(try MarkdownParser().parse(written).blocks, [.heading(level: 1, content: InlineText(runs: [InlineRun(text: "Título *sin cursiva*")]))])
     }
 
     // MARK: - Accessibility

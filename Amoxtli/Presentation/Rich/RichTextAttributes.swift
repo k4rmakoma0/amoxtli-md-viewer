@@ -7,6 +7,9 @@ nonisolated extension NSAttributedString.Key {
     /// The `InlineStyle` of the text, as its raw value. Fonts are derived from it, so it is what
     /// is read back when writing Markdown.
     static let inlineStyle = NSAttributedString.Key("dev.alananaya.amoxtli.inlineStyle")
+    /// A literal leading hash, loaded from Markdown or entered with `\#`. Kept on the hash
+    /// itself so later typing cannot turn it into a heading after its escape is hidden.
+    static let literalHeadingMarker = NSAttributedString.Key("dev.alananaya.amoxtli.literalHeadingMarker")
 }
 
 /// A paragraph's block and containers, boxed as an object so the text storage can hold it and

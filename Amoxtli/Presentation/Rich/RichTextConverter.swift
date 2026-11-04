@@ -35,6 +35,11 @@ struct RichTextConverter {
                 let shown = run.text.replacingOccurrences(of: "\n", with: Self.lineSeparator)
                 text.append(NSAttributedString(string: shown, attributes: styler.attributes(for: kind, style: run.style, link: run.link)))
             }
+            // A hash that survived parsing is literal. Editing an escaped paragraph must not
+            // activate the shortcut used for newly typed heading markers.
+            if paragraph.block == .paragraph, text.string.hasPrefix("#") {
+                text.addAttribute(.literalHeadingMarker, value: true, range: NSRange(location: 0, length: 1))
+            }
             return text
         }
     }
@@ -70,11 +75,14 @@ struct RichTextConverter {
                 .replacingOccurrences(of: Self.attachmentCharacter, with: "")
                 .replacingOccurrences(of: Self.lineSeparator, with: "\n")
             guard !content.isEmpty else { return }
-            if kind.isCode {
-                runs.append(InlineRun(text: content))
+            let style = kind.isCode ? [] : InlineStyle(rawValue: attributes[.inlineStyle] as? Int ?? 0)
+            let link = kind.isCode ? nil : NSTextView.linkURL(from: attributes[.link])
+            // Editor-only attributes may split a semantic run, including an inline code
+            // span. They must not create extra Markdown delimiters when writing it back.
+            if let last = runs.last, last.style == style, last.link == link {
+                runs[runs.count - 1] = InlineRun(text: last.text + content, style: style, link: link)
             } else {
-                let style = InlineStyle(rawValue: attributes[.inlineStyle] as? Int ?? 0)
-                runs.append(InlineRun(text: content, style: style, link: NSTextView.linkURL(from: attributes[.link])))
+                runs.append(InlineRun(text: content, style: style, link: link))
             }
         }
         return runs
