@@ -221,7 +221,36 @@ final class RichTextView: NSTextView {
     /// Toggling bold with nothing selected only changes the style for typing, which the
     /// toolbar has to show too.
     override var typingAttributes: [NSAttributedString.Key: Any] {
-        didSet { controller?.formatsChanged(in: self) }
+        didSet {
+            controller?.formatsChanged(in: self)
+            invalidateEmptyLastLine()
+        }
+    }
+
+    // MARK: - Empty last line
+
+    /// The kind of the empty line at the end of the text while the caret is on it. That line
+    /// has no characters, so its kind lives only in the style kept for typing.
+    private var emptyLastLineKind: RichParagraphKind? {
+        guard let textStorage, selectedRange() == NSRange(location: textStorage.length, length: 0) else { return nil }
+        let endsWithLineBreak = textStorage.length == 0 || (textStorage.string as NSString).character(at: textStorage.length - 1) == 0x0A
+        guard endsWithLineBreak, let kind = typingAttributes[.richParagraph] as? RichParagraphKind, kind != .body else { return nil }
+        return kind
+    }
+
+    override func drawBackground(in rect: NSRect) {
+        super.drawBackground(in: rect)
+        guard let kind = emptyLastLineKind, let layoutManager = layoutManager as? RichLayoutManager else { return }
+        let style = InlineStyle(rawValue: typingAttributes[.inlineStyle] as? Int ?? 0)
+        layoutManager.drawEmptyLastLine(as: kind, style: style, at: textContainerOrigin)
+    }
+
+    /// The marker sits left of the text, so the whole width of that line repaints.
+    private func invalidateEmptyLastLine() {
+        guard let layoutManager else { return }
+        let line = layoutManager.extraLineFragmentRect
+        guard line.height > 0 else { return }
+        setNeedsDisplay(NSRect(x: 0, y: line.minY + textContainerOrigin.y - 12, width: bounds.width, height: line.height + 24))
     }
 
     /// Paragraphs are made uniform before anyone hears of the change, so the Markdown written

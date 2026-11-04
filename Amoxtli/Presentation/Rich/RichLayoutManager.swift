@@ -6,8 +6,9 @@ import AppKit
 nonisolated final class RichLayoutManager: NSLayoutManager {
     weak var styler: RichStyler?
 
-    /// The markers to draw, by the location of the paragraph that starts each item.
-    private var markers: [Int: [RichListMarker]]?
+    /// The markers to draw, by the location of the paragraph that starts each item, and the
+    /// numbering after the last paragraph.
+    private var numbering: (markers: [Int: [RichListMarker]], end: RichListMarker.Numbering)?
 
     override func processEditing(
         for textStorage: NSTextStorage,
@@ -17,7 +18,7 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
         invalidatedRange invalidatedCharRange: NSRange
     ) {
         super.processEditing(for: textStorage, edited: editMask, range: newCharRange, changeInLength: delta, invalidatedRange: invalidatedCharRange)
-        markers = nil
+        numbering = nil
         // Numbers further down may change with any edit to the list. Asking for glyph ranges
         // isn't allowed while the text is being edited, so the whole view repaints. The editors
         // only edit their text on the main thread, though AppKit doesn't declare it here.
@@ -37,7 +38,7 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
     private func drawDecorations(forGlyphRange glyphsToShow: NSRange, at origin: NSPoint) {
         guard let textStorage, let styler else { return }
         let characters = characterRange(forGlyphRange: glyphsToShow, actualGlyphRange: nil)
-        let markers = currentMarkers(in: textStorage)
+        let markers = currentNumbering(in: textStorage).markers
         for paragraph in textStorage.paragraphRanges(in: characters) {
             guard let kind = textStorage.paragraphKind(at: paragraph.location) else { continue }
             let lines = lineRects(of: paragraph).map { (rect: $0.rect.offsetBy(dx: origin.x, dy: origin.y), used: $0.used.offsetBy(dx: origin.x, dy: origin.y)) }
@@ -48,8 +49,33 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
             }
             drawQuoteBars(area, kind: kind, styler: styler)
             for marker in markers[paragraph.location] ?? [] {
-                draw(marker.text, depth: marker.depth, kind: kind, paragraph: paragraph, firstLine: first, styler: styler)
+                let font = textStorage.attribute(.font, at: paragraph.location, effectiveRange: nil) as? NSFont ?? styler.typography.body
+                let baseline = first.minY + location(forGlyphAt: glyphIndexForCharacter(at: paragraph.location)).y
+                draw(marker.text, depth: marker.depth, kind: kind, font: font, baseline: baseline, lineStart: first.minX, styler: styler)
             }
+        }
+    }
+
+    /// The empty line at the end of the text has no characters, so its kind exists only in the
+    /// style kept for typing. Drawing its marker, quote bar or code background there shows
+    /// what is about to be written, as soon as a list or a quote starts.
+    func drawEmptyLastLine(as kind: RichParagraphKind, style: InlineStyle, at origin: NSPoint) {
+        guard let textStorage, let styler else { return }
+        let line = extraLineFragmentRect.offsetBy(dx: origin.x, dy: origin.y)
+        guard line.height > 0 else { return }
+        let font = styler.font(for: kind, style: style)
+        let previous = textStorage.length > 0 ? textStorage.paragraphKind(at: textStorage.length - 1) : nil
+        let spacingBefore = styler.paragraphStyle(for: kind, previous: previous, next: nil).paragraphSpacingBefore
+        let baseline = line.minY + spacingBefore + defaultBaselineOffset(for: font)
+        if kind.isCode {
+            let indent = styler.indent(of: kind.containers)
+            NSColor.quaternarySystemFill.setFill()
+            NSRect(x: line.minX + indent, y: line.minY + spacingBefore - 6, width: line.width - indent, height: defaultLineHeight(for: font) + 12).fill()
+        }
+        drawQuoteBars(line, kind: kind, styler: styler)
+        var numbering = currentNumbering(in: textStorage).end
+        for marker in numbering.markers(for: kind.containers) {
+            draw(marker.text, depth: marker.depth, kind: kind, font: font, baseline: baseline, lineStart: line.minX, styler: styler)
         }
     }
 
@@ -87,24 +113,20 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
     }
 
     /// Right-aligned against the item's text, on the first line's baseline.
-    private func draw(_ marker: String, depth: Int, kind: RichParagraphKind, paragraph: NSRange, firstLine: NSRect, styler: RichStyler) {
-        guard let textStorage else { return }
-        let font = textStorage.attribute(.font, at: paragraph.location, effectiveRange: nil) as? NSFont ?? styler.typography.body
+    private func draw(_ marker: String, depth: Int, kind: RichParagraphKind, font: NSFont, baseline: CGFloat, lineStart: CGFloat, styler: RichStyler) {
         let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.secondaryLabelColor]
         let size = (marker as NSString).size(withAttributes: attributes)
         let textStart = styler.indent(of: kind.containers.prefix(depth + 1))
-        let firstGlyph = glyphIndexForCharacter(at: paragraph.location)
-        let baseline = firstLine.minY + location(forGlyphAt: firstGlyph).y
-        let point = NSPoint(x: firstLine.minX + textStart - size.width - 6, y: baseline - font.ascender)
+        let point = NSPoint(x: lineStart + textStart - size.width - 6, y: baseline - font.ascender)
         (marker as NSString).draw(at: point, withAttributes: attributes)
     }
 
     // MARK: - Markers
 
-    private func currentMarkers(in storage: NSTextStorage) -> [Int: [RichListMarker]] {
-        if let markers { return markers }
-        let computed = RichListMarker.markers(in: storage)
-        markers = computed
+    private func currentNumbering(in storage: NSTextStorage) -> (markers: [Int: [RichListMarker]], end: RichListMarker.Numbering) {
+        if let numbering { return numbering }
+        let computed = RichListMarker.numbering(of: storage)
+        numbering = computed
         return computed
     }
 }

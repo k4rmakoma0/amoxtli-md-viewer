@@ -320,4 +320,29 @@ final class RichTextViewTests: XCTestCase {
         XCTAssertTrue(controller.isActive(.bodyText))
         XCTAssertFalse(controller.isActive(.table))
     }
+
+    // MARK: - Empty last line
+
+    /// The empty line after Return has no characters, only a style for typing; its marker is
+    /// drawn from that style with the numbering that follows the text.
+    private func markerOfEmptyLastLine(in view: RichTextView) throws -> [String] {
+        let storage = try XCTUnwrap(view.textStorage)
+        let kind = try XCTUnwrap(view.typingAttributes[.richParagraph] as? RichParagraphKind)
+        var numbering = RichListMarker.numbering(of: storage).end
+        return numbering.markers(for: kind.containers).map(\.text)
+    }
+
+    func testNewLastItemIsNumberedAfterTheOthers() throws {
+        let view = try makeView("1. uno\n2. dos")
+        placeCaret(after: "dos", in: view)
+        view.insertNewline(nil)
+        XCTAssertEqual(view.selectedRange().location, view.textStorage?.length)
+        XCTAssertEqual(try markerOfEmptyLastLine(in: view), ["3."])
+    }
+
+    func testListStartedOnAnEmptyDocumentHasItsMarker() throws {
+        let view = try makeView("")
+        view.apply(.bulletList, actionName: "")
+        XCTAssertEqual(try markerOfEmptyLastLine(in: view), ["•"])
+    }
 }
