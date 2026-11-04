@@ -4954,6 +4954,7 @@
       }
     },
     "Estilo de texto" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5934,6 +5935,7 @@
       }
     },
     "Listas y citas" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
