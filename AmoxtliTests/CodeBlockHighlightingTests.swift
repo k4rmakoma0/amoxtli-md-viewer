@@ -157,6 +157,30 @@ final class RichCodeHighlightingTests: XCTestCase {
         XCTAssertEqual(view.codeBlock(withChipAt: NSPoint(x: chip.midX, y: chip.midY)), 0)
     }
 
+    private func usedRect(of text: String, in view: RichTextView) throws -> NSRect {
+        let layoutManager = try XCTUnwrap(view.layoutManager)
+        layoutManager.ensureLayout(for: try XCTUnwrap(view.textContainer))
+        let glyph = layoutManager.glyphIndexForCharacter(at: location(of: text, in: view))
+        return layoutManager.lineFragmentUsedRect(forGlyphAt: glyph, effectiveRange: nil)
+    }
+
+    func testReturnAtTheEndOfTheTextKeepsTheNewLineInTheBlock() throws {
+        for markdown in ["```swift\nfunc {\n```", "texto\n\n```swift\nfunc {\n```"] {
+            let view = try makeView(markdown)
+            placeCaret(after: "func {", in: view)
+            let before = try usedRect(of: "func {", in: view)
+            view.insertNewline(nil)
+            let layoutManager = try XCTUnwrap(view.layoutManager)
+            layoutManager.ensureLayout(for: try XCTUnwrap(view.textContainer))
+            let emptyLine = layoutManager.extraLineFragmentUsedRect
+            XCTAssertEqual(try usedRect(of: "func {", in: view), before, markdown)
+            XCTAssertEqual(emptyLine.minY, before.maxY, accuracy: 0.5, markdown)
+            view.insertText("aaa", replacementRange: view.selectedRange())
+            XCTAssertEqual(try usedRect(of: "aaa", in: view).minY, emptyLine.minY, accuracy: 0.5, markdown)
+            XCTAssertEqual(try usedRect(of: "func {", in: view), before, markdown)
+        }
+    }
+
     func testTextIsNotTheChip() throws {
         let view = try makeView("```\nlet x\n```")
         let layoutManager = try XCTUnwrap(view.layoutManager)

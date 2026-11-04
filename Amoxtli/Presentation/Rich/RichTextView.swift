@@ -233,6 +233,7 @@ final class RichTextView: NSTextView {
     override var typingAttributes: [NSAttributedString.Key: Any] {
         didSet {
             controller?.formatsChanged(in: self)
+            syncEmptyLastLine()
             invalidateEmptyLastLine()
         }
     }
@@ -255,6 +256,34 @@ final class RichTextView: NSTextView {
         guard let kind = emptyLastLineKind, let layoutManager = layoutManager as? RichLayoutManager else { return }
         let style = InlineStyle(rawValue: typingAttributes[.inlineStyle] as? Int ?? 0)
         layoutManager.drawEmptyLastLine(as: kind, style: style, at: textContainerOrigin)
+    }
+
+    /// TextKit lays out the empty last line with the typing attributes, so they carry its
+    /// spacing, which depends on the paragraph above, as the spacing after that paragraph
+    /// depends on the empty line. Without this, Return at the end of a code block would put
+    /// the caret below the block and the lines would move once something is typed.
+    private func syncEmptyLastLine() {
+        guard !isSyncingEmptyLastLine, let textStorage, textStorage.editedMask.isEmpty else { return }
+        isSyncingEmptyLastLine = true
+        defer { isSyncingEmptyLastLine = false }
+        let kind = emptyLastLineKind
+        if styler.emptyLastLineKind != kind {
+            styler.emptyLastLineKind = kind
+            if textStorage.length > 0 {
+                textStorage.beginEditing()
+                styler.restyle(textStorage.paragraphRange(at: textStorage.length - 1), in: textStorage)
+                textStorage.endEditing()
+            }
+        }
+        guard let kind else { return }
+        let previous = textStorage.length > 0 ? textStorage.paragraphKind(at: textStorage.length - 1) : nil
+        let style = styler.paragraphStyle(for: kind, previous: previous, next: nil)
+        if typingAttributes[.paragraphStyle] as? NSParagraphStyle != style {
+            typingAttributes[.paragraphStyle] = style
+            if textStorage.length > 0 {
+                layoutManager?.invalidateLayout(forCharacterRange: NSRange(location: textStorage.length - 1, length: 1), actualCharacterRange: nil)
+            }
+        }
     }
 
     /// The marker sits left of the text, so the whole width of that line repaints.
@@ -280,6 +309,7 @@ final class RichTextView: NSTextView {
 
     /// Whether the edit in progress only removes text, which is when an element may be left empty.
     private var editRemovedText = false
+    private var isSyncingEmptyLastLine = false
 
     override func shouldChangeText(in affectedCharRange: NSRange, replacementString: String?) -> Bool {
         let shouldChange = super.shouldChangeText(in: affectedCharRange, replacementString: replacementString)

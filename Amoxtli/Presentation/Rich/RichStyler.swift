@@ -4,6 +4,9 @@ import AppKit
 /// styles stored in the text, so restyling a paragraph never depends on how it looked before.
 nonisolated final class RichStyler {
     var typography = Typography()
+    /// The kind of the empty line at the end while the caret is on it, which the paragraph
+    /// before it is spaced against, as against any next paragraph.
+    var emptyLastLineKind: RichParagraphKind?
 
     /// One table object per table, so all of its cells lay out together. Cells are cached too,
     /// since two paragraphs in one cell must share the same block to stay in that cell.
@@ -50,7 +53,7 @@ nonisolated final class RichStyler {
         for paragraph in storage.paragraphRanges(in: range) {
             let kind = storage.paragraphKind(at: paragraph.location) ?? .body
             let previous = paragraph.location > 0 ? storage.paragraphKind(at: paragraph.location - 1) : nil
-            let next = storage.paragraphKind(at: NSMaxRange(paragraph))
+            let next = storage.paragraphKind(at: NSMaxRange(paragraph)) ?? lineAfterEnd(of: paragraph, in: storage)
             storage.addAttribute(.richParagraph, value: kind, range: paragraph)
             storage.addAttribute(.paragraphStyle, value: paragraphStyle(for: kind, previous: previous, next: next), range: paragraph)
             storage.addAttribute(.foregroundColor, value: color(for: kind), range: paragraph)
@@ -75,6 +78,12 @@ nonisolated final class RichStyler {
         guard case .code(_, let language) = kind.block else { return }
         let block = storage.contentRange(of: storage.codeBlockRange(at: location))
         CodeColors.color(block, of: storage, language: language.flatMap(CodeLanguage.init(fenceInfo:)), base: color(for: kind))
+    }
+
+    private func lineAfterEnd(of paragraph: NSRange, in storage: NSTextStorage) -> RichParagraphKind? {
+        guard NSMaxRange(paragraph) == storage.length, paragraph.length > 0,
+              (storage.string as NSString).character(at: NSMaxRange(paragraph) - 1) == 0x0A else { return nil }
+        return emptyLastLineKind
     }
 
     private func set(_ key: NSAttributedString.Key, _ value: Any, if isSet: Bool, in range: NSRange, of storage: NSTextStorage) {
