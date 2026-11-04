@@ -96,11 +96,22 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
         let padding: CGFloat = 6
         let isFirst = paragraph.location == 0 || textStorage.paragraphKind(at: paragraph.location - 1) != kind
         let isLast = textStorage.paragraphKind(at: NSMaxRange(paragraph)) != kind
-        let top = isFirst ? first.minY - padding : area.minY
+        let label = isFirst ? codeLabel(of: kind) : nil
+        let top = isFirst ? first.minY - padding - (label == nil ? 0 : styler.codeLabelHeight) : area.minY
         let bottom = isLast ? last.maxY + padding : area.maxY
         let indent = styler.indent(of: kind.containers)
         NSColor.quaternarySystemFill.setFill()
         NSRect(x: area.minX + indent, y: top, width: area.width - indent, height: bottom - top).fill()
+        if let label {
+            let attributes: [NSAttributedString.Key: Any] = [.font: styler.codeLabelFont, .foregroundColor: NSColor.secondaryLabelColor]
+            let size = (label as NSString).size(withAttributes: attributes)
+            (label as NSString).draw(at: NSPoint(x: area.maxX - styler.codePadding - size.width, y: top + 4), withAttributes: attributes)
+        }
+    }
+
+    private func codeLabel(of kind: RichParagraphKind) -> String? {
+        guard case .code(_, let language) = kind.block else { return nil }
+        return CodeLanguage.label(forFenceInfo: language)
     }
 
     private func drawQuoteBars(_ area: NSRect, kind: RichParagraphKind, styler: RichStyler) {

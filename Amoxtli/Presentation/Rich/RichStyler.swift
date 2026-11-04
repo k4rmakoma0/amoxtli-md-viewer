@@ -15,6 +15,10 @@ nonisolated final class RichStyler {
     var quoteIndent: CGFloat { 20 * typography.size.scale }
     let codePadding: CGFloat = 12
 
+    /// The language's name, drawn in a strip above a code block's first line.
+    var codeLabelFont: NSFont { .systemFont(ofSize: (size * 0.8).rounded(), weight: .medium) }
+    var codeLabelHeight: CGFloat { (codeLabelFont.ascender - codeLabelFont.descender).rounded(.up) + 4 }
+
     func forgetTables() {
         tables = [:]
         cells = [:]
@@ -40,6 +44,7 @@ nonisolated final class RichStyler {
     /// Restyles whole paragraphs from what they store. Their kind comes from their first
     /// character, which is how a paragraph merged into another takes that one's kind.
     func restyle(_ range: NSRange, in storage: NSTextStorage) {
+        var codeBlocks: [Int: (location: Int, kind: RichParagraphKind)] = [:]
         for paragraph in storage.paragraphRanges(in: range) {
             let kind = storage.paragraphKind(at: paragraph.location) ?? .body
             let previous = paragraph.location > 0 ? storage.paragraphKind(at: paragraph.location - 1) : nil
@@ -54,7 +59,20 @@ nonisolated final class RichStyler {
                 set(.strikethroughStyle, NSUnderlineStyle.single.rawValue, if: style.contains(.strikethrough), in: run, of: storage)
                 set(.backgroundColor, NSColor.quaternarySystemFill, if: style.contains(.code), in: run, of: storage)
             }
+            if case .code(let id, _) = kind.block, codeBlocks[id] == nil {
+                codeBlocks[id] = (paragraph.location, kind)
+            }
         }
+        for block in codeBlocks.values {
+            colorCode(at: block.location, kind: block.kind, in: storage)
+        }
+    }
+
+    /// Code is colored a whole block at a time, since a comment or a string may span lines.
+    private func colorCode(at location: Int, kind: RichParagraphKind, in storage: NSTextStorage) {
+        guard case .code(_, let language) = kind.block else { return }
+        let block = storage.contentRange(of: storage.codeBlockRange(at: location))
+        CodeColors.color(block, of: storage, language: language.flatMap(CodeLanguage.init(fenceInfo:)), base: color(for: kind))
     }
 
     private func set(_ key: NSAttributedString.Key, _ value: Any, if isSet: Bool, in range: NSRange, of storage: NSTextStorage) {
@@ -151,9 +169,9 @@ nonisolated final class RichStyler {
         switch kind.block {
         case .heading(let level):
             return level <= 2 ? size : size * 0.5
-        case .code(let id, _):
+        case .code(let id, let language):
             if case .code(let previousID, _) = previous?.block, previousID == id { return 0 }
-            return size * 0.5
+            return size * 0.5 + (CodeLanguage.label(forFenceInfo: language) == nil ? 0 : codeLabelHeight)
         default:
             // The paragraph after a code block or a table, which have no spacing of their own.
             switch previous?.block {

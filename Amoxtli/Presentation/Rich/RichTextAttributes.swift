@@ -88,6 +88,23 @@ nonisolated extension NSAttributedString {
         return InlineStyle(rawValue: raw)
     }
 
+    /// Every line of the code block with a paragraph at a location; just that paragraph when
+    /// it isn't code.
+    func codeBlockRange(at location: Int) -> NSRange {
+        var block = paragraphRange(at: location)
+        guard case .code(let id, _) = paragraphKind(at: block.location)?.block else { return block }
+        func isInBlock(_ location: Int) -> Bool {
+            if case .code(let other, _) = paragraphKind(at: location)?.block { other == id } else { false }
+        }
+        while block.location > 0, isInBlock(block.location - 1) {
+            block = NSUnionRange(block, paragraphRange(at: block.location - 1))
+        }
+        while NSMaxRange(block) < length, isInBlock(NSMaxRange(block)) {
+            block = NSUnionRange(block, paragraphRange(at: NSMaxRange(block)))
+        }
+        return block
+    }
+
     /// The paragraphs of a range plus the ones just before and after it.
     func withNeighborParagraphs(_ range: NSRange) -> NSRange {
         var result = range

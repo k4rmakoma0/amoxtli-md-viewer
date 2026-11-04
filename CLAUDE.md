@@ -48,7 +48,7 @@ Editor de Markdown para macOS 27, pensado también para quien no es programador.
 - `<u>`/`</u>` (y `<ins>`) llegan como runs de HTML inline: se convierten en el estilo subrayado. Cualquier otro HTML se queda como texto.
 - Agrupar runs por `PresentationIntent` hacia un modelo propio en `Domain/`: heading(level), paragraph, orderedList, unorderedList, listItem, blockQuote, codeBlock(languageHint), table, thematicBreak. Estilos inline desde `InlinePresentationIntent`, links desde `.link`.
 - El modelo alimenta el índice, las estadísticas y el editor con formato (ver Edición). No hay un render de solo lectura aparte: el modo Formato es el editor.
-- Code blocks: monoespaciada del sistema, fondo semántico, sin syntax highlighting. Imágenes http(s) cargadas en segundo plano.
+- Code blocks: monoespaciada del sistema, fondo semántico. Resaltado por lenguaje con `CodeHighlighter` (`Domain/`): un lexer escrito a mano por familia (comentarios, cadenas, números, palabras clave, tipos, propiedades, etiquetas/atributos), sin dependencias. `CodeLanguage` lee el info string del fence (con alias: js, ts, py, sh, bash, zsh, xml…): Swift, Python, JavaScript, TypeScript, JSON, HTML/XML, CSS, SQL y Shell; cualquier otro lenguaje queda sin color. Se colorea el bloque entero (comentarios y cadenas de varias líneas). Colores en `CodeColors`, con valor claro y oscuro (cercanos al tema de Xcode), iguales en Fuente y en Formato. Imágenes http(s) cargadas en segundo plano.
 - No asumas soporte GFM (tablas, strikethrough, task lists): verifícalo con tests y reporta qué funciona.
 
 ## Modos de apertura
@@ -73,7 +73,8 @@ Editor de Markdown para macOS 27, pensado también para quien no es programador.
 - Formato WYSIWYG (`Presentation/Rich/`): `RichTextView`, subclase de `NSTextView` con TextKit 1 (necesario para `NSTextTable`). Nunca muestra sintaxis.
   - Modelo plano en `Domain/RichDocument.swift`: `RichParagraph` (bloque + contenedores quote/listItem con ids + runs). `RichDocumentBuilder` lo arma desde `MarkdownModel`; `MarkdownSerializer` lo escribe como Markdown canónico (`-`, `**`, `*`, fences, escapes mínimos). Garantía: `parse(serialize(x)) == parse(x)`, cubierta por tests de ida y vuelta.
   - En el texto, cada párrafo lleva `.richParagraph` (`RichParagraphKind`) y cada run `.inlineStyle`; las fuentes y el estilo de párrafo se derivan de ahí (`RichStyler`). Tras cada edición, cada párrafo toma el tipo de su primer carácter y se re-estiliza con sus vecinos (`RichTextNormalizer`, en `didChangeText`).
-  - `RichLayoutManager` dibuja viñetas/números (se renumeran solos), la barra de las citas y el fondo del código. Línea divisoria e imágenes son adjuntos; las imágenes remotas cargan en segundo plano.
+  - `RichLayoutManager` dibuja viñetas/números (se renumeran solos), la barra de las citas y el fondo del código, con el nombre del lenguaje arriba a la derecha. Línea divisoria e imágenes son adjuntos; las imágenes remotas cargan en segundo plano.
+  - El fence no se ve en Formato: el lenguaje de un bloque se elige con clic derecho > Lenguaje ▸ (Ninguno + los conocidos; uno desconocido del archivo aparece marcado) y se escribe en el fence al serializar.
   - Solo se serializa al editar en Formato: abrir o leer no reescribe el archivo. La primera edición deja el archivo en forma canónica.
   - Teclas como en Pages: Return en lista crea ítem, en ítem vacío sale de la lista, al final de un título sigue texto normal; Borrar al inicio quita viñeta/cita/título antes de unir; Tab/⇧Tab anidan y desanidan ítems y en tablas cambian de celda. En un bloque de código, Return siempre agrega una línea (también en blanco); ↓ en su última línea al final del documento sale a texto normal. Pegar es siempre texto plano.
   - Tablas editables por celda; agregar o quitar filas y columnas se hace en Fuente.
@@ -138,6 +139,7 @@ Editor de Markdown para macOS 27, pensado también para quien no es programador.
 - `MarkdownSerializer`: ida y vuelta para estilos, listas anidadas, citas, código, tablas, links, saltos forzados y texto que parece sintaxis; salida canónica estable.
 - `RichTextView`: conversión sin pérdida, Return/Borrar/Tab en listas, títulos y tablas, cada herramienta de formato.
 - `MarkdownSyntaxScanner`: spans por tipo, nada se resalta dentro de código, estado de fence entre líneas.
+- `CodeHighlighter` / `CodeLanguage`: tokens por lenguaje, comentarios y cadenas de varias líneas, offsets UTF-16, alias del fence; ambos editores colorean y recolorean al editar; elegir el lenguaje en Formato escribe el fence.
 - `FolderFileEditor`: carga sin marcar cambios, autoguardado, guarda al cambiar de archivo, error de escritura, archivo ilegible nunca se escribe.
 - Parser → modelo: headings 1-6, listas anidadas, blockquote, code block con/sin lenguaje, tabla, estilos inline, link, input malformado.
 - `FolderScanner`: filtra .md/.markdown case-insensitive, ignora otros formatos, poda carpetas vacías, recursivo, carpeta vacía.

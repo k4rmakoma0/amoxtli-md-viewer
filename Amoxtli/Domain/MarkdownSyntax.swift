@@ -45,6 +45,12 @@ nonisolated enum MarkdownSyntaxScanner {
         Patterns.fence.firstMatch(in: text, range: line) != nil
     }
 
+    /// What follows the backticks or tildes of a fence line, as `swift` in ```` ```swift ````.
+    static func fenceInfo(_ line: NSRange, in text: String) -> String {
+        let content = (text as NSString).substring(with: line).drop { $0 == " " }.drop { $0 == "`" || $0 == "~" }
+        return content.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     static func scan(_ text: String) -> SyntaxScan {
         scan(text, lines: NSRange(location: 0, length: text.utf16.count), startsInFence: false)
     }

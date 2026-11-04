@@ -37,6 +37,7 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
         let text = storage.string
         let scan = MarkdownSyntaxScanner.scan(text, lines: lines, startsInFence: startsInFence)
         apply(scan, to: lines, in: storage)
+        colorCode(touching: lines, in: storage)
         let next = NSMaxRange(lines)
         guard followsUp, next < storage.length, scan.endsInFence != nextLineStartsInFence(at: next, in: storage, text: text) else { return }
         // The edit opened or closed a code block: everything below it changes.
@@ -57,11 +58,8 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
     /// line marked as open opened a block, so it started outside one, and the opposite for others.
     private func nextLineStartsInFence(at location: Int, in storage: NSTextStorage, text: String) -> Bool {
         let source = text as NSString
-        var line = source.lineRange(for: NSRange(location: location, length: 0))
+        let line = content(of: source.lineRange(for: NSRange(location: location, length: 0)), in: source)
         let isMarked = storage.attribute(Self.fenceKey, at: location, effectiveRange: nil) != nil
-        while line.length > 0, [0x0A, 0x0D].contains(source.character(at: NSMaxRange(line) - 1)) {
-            line.length -= 1
-        }
         return MarkdownSyntaxScanner.isFence(line, in: text) ? !isMarked : isMarked
     }
 
@@ -76,6 +74,59 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
         }
         storage.endEditing()
     }
+
+    // MARK: - Code
+
+    /// Colors the code blocks the lines touch, each one whole, from the line after its opening
+    /// fence up to its closing fence. The fence marks of the lines before tell where a block
+    /// that started above them opened; code with no known language keeps the base color.
+    private func colorCode(touching lines: NSRange, in storage: NSTextStorage) {
+        let text = storage.string
+        let source = text as NSString
+        var location = blockStart(before: lines.location, in: storage, source: source)
+        var opening: (info: String, codeStart: Int)?
+        while location < storage.length, location < NSMaxRange(lines) || opening != nil {
+            let line = source.lineRange(for: NSRange(location: location, length: 0))
+            let startsInFence = Self.isInFence(atLineStart: line.location, in: storage)
+            let isMarked = storage.attribute(Self.fenceKey, at: line.location, effectiveRange: nil) != nil
+            if !startsInFence, isMarked {
+                opening = (MarkdownSyntaxScanner.fenceInfo(content(of: line, in: source), in: text), NSMaxRange(line))
+            } else if startsInFence, !isMarked, let block = opening {
+                color(NSRange(location: block.codeStart, length: line.location - block.codeStart), info: block.info, in: storage)
+                opening = nil
+            }
+            location = NSMaxRange(line)
+        }
+        if let block = opening {
+            color(NSRange(location: block.codeStart, length: storage.length - block.codeStart), info: block.info, in: storage)
+        }
+    }
+
+    /// The start of the opening fence line of the block a location is in, or of its own line.
+    private func blockStart(before location: Int, in storage: NSTextStorage, source: NSString) -> Int {
+        var line = source.lineRange(for: NSRange(location: min(location, storage.length), length: 0))
+        while line.location > 0, Self.isInFence(atLineStart: line.location, in: storage) {
+            line = source.lineRange(for: NSRange(location: line.location - 1, length: 0))
+        }
+        return line.location
+    }
+
+    private func color(_ code: NSRange, info: String, in storage: NSTextStorage) {
+        guard code.length > 0, let language = CodeLanguage(fenceInfo: info) else { return }
+        storage.beginEditing()
+        CodeColors.color(code, of: storage, language: language, base: .labelColor)
+        storage.endEditing()
+    }
+
+    private func content(of line: NSRange, in source: NSString) -> NSRange {
+        var content = line
+        while content.length > 0, [0x0A, 0x0D].contains(source.character(at: NSMaxRange(content) - 1)) {
+            content.length -= 1
+        }
+        return content
+    }
+
+    // MARK: - Styles
 
     private func style(_ span: SyntaxSpan, in storage: NSTextStorage) {
         switch span.kind {

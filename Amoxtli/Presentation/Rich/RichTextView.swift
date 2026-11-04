@@ -384,7 +384,7 @@ final class RichTextView: NSTextView {
 
     /// The kind where the caret is. On the empty last line, which has no characters, that is the
     /// kind kept for typing.
-    private var kindAtCaret: RichParagraphKind {
+    var kindAtCaret: RichParagraphKind {
         guard let textStorage else { return .body }
         let caret = selectedRange().location
         if caret == textStorage.length, textStorage.paragraphRange(at: caret).length == 0,
@@ -581,7 +581,11 @@ final class RichTextView: NSTextView {
         if let links, let index = linkCharacterIndex(at: point), let url = link(atCharacter: index) {
             return LinkContextMenu.make(model: links.menuModel(for: url, displayedText: linkText(atCharacter: index)), links: links)
         }
-        return EditingContextMenu.make(for: self, controller: controller)
+        moveCaretForContextMenu(to: point)
+        let language = codeLanguageAtCaret.map { current in
+            CodeLanguageChoice(current: current) { [weak self] in self?.setCodeLanguage($0) }
+        }
+        return EditingContextMenu.make(for: self, controller: controller, codeLanguage: language)
     }
 }
 
