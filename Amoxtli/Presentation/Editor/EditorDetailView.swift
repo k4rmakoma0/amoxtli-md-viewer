@@ -13,6 +13,8 @@ struct EditorDetailView: View {
     @Bindable var editor: EditorController
 
     private let preferences = TypographyPreferences()
+    /// Only the split view scrolls its two editors together.
+    @State private var scrollSync = SplitScrollSync()
     private let renderDelay: Duration = .milliseconds(250)
 
     var body: some View {
@@ -71,13 +73,13 @@ struct EditorDetailView: View {
     }
 
     private var formatted: some View {
-        RichEditor(text: $text, controller: editor, links: links, tableOfContents: viewModel.tableOfContents)
+        RichEditor(text: $text, controller: editor, links: links, tableOfContents: viewModel.tableOfContents, scrollSync: mode == .split ? scrollSync : nil)
             .overlay { LinkStatusOverlay() }
             .environment(links)
     }
 
     private var source: some View {
-        SourceEditor(text: $text, controller: editor)
+        SourceEditor(text: $text, controller: editor, scrollSync: mode == .split ? scrollSync : nil)
     }
 
     @ViewBuilder

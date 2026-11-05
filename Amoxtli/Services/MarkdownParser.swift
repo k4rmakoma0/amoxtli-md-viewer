@@ -7,13 +7,49 @@ nonisolated protocol MarkdownParsing: Sendable {
 /// Builds the block tree by grouping `AttributedString` runs on their `PresentationIntent` path.
 nonisolated struct MarkdownParser: MarkdownParsing {
     func parse(_ source: String) throws -> MarkdownModel {
+        MarkdownModel(blocks: blocks(from: try runs(in: source), depth: 0))
+    }
+
+    /// The line, counting from 1, where each of the model's top-level blocks starts, in the
+    /// same order, so the split view can line the source up with the formatted document.
+    func topLevelBlockLines(in source: String) throws -> [Int] {
+        let sourceLines = source.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
+        var previousEnd = 0
+        return groups(of: try runs(in: source), depth: 0).flatMap { group in
+            let lines = blockLines(from: group).map { line in
+                // A thematic break has no source position: it is the first line after the block
+                // before it with anything on it.
+                line ?? firstNonBlankLine(after: previousEnd, in: sourceLines)
+            }
+            previousEnd = max(previousEnd, lines.max() ?? 0, group.runs.compactMap(\.sourceEndLine).max() ?? 0)
+            return lines
+        }
+    }
+
+    private func firstNonBlankLine(after line: Int, in lines: [Substring]) -> Int {
+        let index = lines.indices.dropFirst(line).first { !lines[$0].allSatisfy(\.isWhitespace) }
+        return (index ?? max(0, min(line, lines.count - 1))) + 1
+    }
+
+    private func runs(in source: String) throws -> [ParsedRun] {
         let options = AttributedString.MarkdownParsingOptions(
             interpretedSyntax: .full,
             failurePolicy: .returnPartiallyParsedIfPossible,
             appliesSourcePositionAttributes: true
         )
         let attributed = try AttributedString(markdown: source, options: options)
-        return MarkdownModel(blocks: blocks(from: parsedRuns(in: attributed, source: source), depth: 0))
+        return parsedRuns(in: attributed, source: source)
+    }
+
+    /// One line per block that `blocks(from:depth:)` makes of the group: paragraphs split
+    /// where they hold images.
+    private func blockLines(from group: RunGroup) -> [Int?] {
+        switch group.intent?.kind {
+        case .header, .orderedList, .unorderedList, .blockQuote, .codeBlock, .table, .thematicBreak:
+            return [group.runs.first?.sourceLine]
+        default:
+            return paragraphPieces(from: group.runs).map(\.line)
+        }
     }
 
     private func parsedRuns(in attributed: AttributedString, source: String) -> [ParsedRun] {
@@ -29,7 +65,9 @@ nonisolated struct MarkdownParser: MarkdownParsing {
                     link: run.link
                 ),
                 imageURL: run.imageURL,
-                isHTML: run.inlinePresentationIntent?.contains(.inlineHTML) ?? false
+                isHTML: run.inlinePresentationIntent?.contains(.inlineHTML) ?? false,
+                sourceLine: run.markdownSourcePosition?.startLine,
+                sourceEndLine: run.markdownSourcePosition?.endLine
             )
             if let position = run.markdownSourcePosition {
                 if let previousTableID, previousTableID != parsed.tableID {
@@ -120,14 +158,21 @@ nonisolated struct MarkdownParser: MarkdownParsing {
 
     // MARK: - Paragraphs
 
-    /// `Text` can't host an `AsyncImage`, so images break the paragraph into separate blocks.
     private func paragraphBlocks(from runs: [ParsedRun]) -> [MarkdownBlock] {
-        var blocks: [MarkdownBlock] = []
+        paragraphPieces(from: runs).map(\.block)
+    }
+
+    /// `Text` can't host an `AsyncImage`, so images break the paragraph into separate blocks,
+    /// each starting at the line of its first run.
+    private func paragraphPieces(from runs: [ParsedRun]) -> [(block: MarkdownBlock, line: Int?)] {
+        var pieces: [(block: MarkdownBlock, line: Int?)] = []
         var pending: [ParsedRun] = []
 
         func flushPending() {
-            if pending.contains(where: { !$0.inline.text.allSatisfy(\.isWhitespace) }) {
-                blocks.append(.paragraph(inlineText(from: pending)))
+            // The break before text that follows an image ends the line above, so the text's
+            // line is that of its first visible run.
+            if let first = pending.first(where: { !$0.inline.text.allSatisfy(\.isWhitespace) }) {
+                pieces.append((.paragraph(inlineText(from: pending)), first.sourceLine))
             }
             pending = []
         }
@@ -137,13 +182,13 @@ nonisolated struct MarkdownParser: MarkdownParsing {
                 flushPending()
                 // Images without alt text arrive with U+FFFC as their only text.
                 let altText = run.inline.text == "\u{FFFC}" ? "" : run.inline.text
-                blocks.append(.image(MarkdownImage(source: source, altText: altText)))
+                pieces.append((.image(MarkdownImage(source: source, altText: altText)), run.sourceLine))
             } else {
                 pending.append(run)
             }
         }
         flushPending()
-        return blocks
+        return pieces
     }
 
     /// Adjacent runs with the same attributes are merged: soft breaks arrive as runs of their own.
@@ -238,6 +283,8 @@ private nonisolated struct ParsedRun {
     let inline: InlineRun
     let imageURL: URL?
     let isHTML: Bool
+    let sourceLine: Int?
+    let sourceEndLine: Int?
     var tableBodyRowCount = 0
 
     var tableID: Int? {

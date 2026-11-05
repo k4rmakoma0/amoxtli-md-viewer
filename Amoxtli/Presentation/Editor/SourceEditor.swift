@@ -5,12 +5,13 @@ import SwiftUI
 struct SourceEditor: NSViewRepresentable {
     @Binding var text: String
     let controller: EditorController
+    let scrollSync: SplitScrollSync?
 
     @Environment(\.undoManager) private var undoManager
     @Environment(\.typography) private var typography
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text)
+        Coordinator(text: $text, scrollSync: scrollSync)
     }
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -33,6 +34,7 @@ struct SourceEditor: NSViewRepresentable {
         scrollView.documentView = textView
         textView.controller = controller
         controller.attach(textView)
+        scrollSync?.attach(scrollView, editor: textView, as: .source)
         return scrollView
     }
 
@@ -49,6 +51,7 @@ struct SourceEditor: NSViewRepresentable {
     }
 
     static func dismantleNSView(_ scrollView: NSScrollView, coordinator: Coordinator) {
+        coordinator.scrollSync?.detach(scrollView)
         guard let textView = scrollView.documentView as? SourceTextView else { return }
         textView.controller?.detach(textView)
         // Undo steps of a text view that is going away can't be replayed into another one.
@@ -61,18 +64,21 @@ struct SourceEditor: NSViewRepresentable {
     final class Coordinator: NSObject, NSTextViewDelegate {
         var text: Binding<String>
         var undoManager: UndoManager?
+        let scrollSync: SplitScrollSync?
         let highlighter = SourceHighlighter()
         /// The text last shown or typed, so updates that come back from typing are recognized.
         private(set) var shownText = ""
 
-        init(text: Binding<String>) {
+        init(text: Binding<String>, scrollSync: SplitScrollSync? = nil) {
             self.text = text
+            self.scrollSync = scrollSync
         }
 
         /// The highlighter styles the new text as the storage reports the change.
         func show(_ newText: String, in textView: SourceTextView) {
             shownText = newText
             textView.show(newText)
+            scrollSync?.contentChanged()
         }
 
         func apply(_ typography: Typography, to textView: SourceTextView) {
@@ -81,6 +87,7 @@ struct SourceEditor: NSViewRepresentable {
             if let storage = textView.textStorage {
                 highlighter.restyle(storage)
             }
+            scrollSync?.contentChanged()
         }
 
         /// Catches up with the document before this view is typed into, so typing never starts
@@ -105,6 +112,7 @@ struct SourceEditor: NSViewRepresentable {
             let newText = textView.string
             shownText = newText
             text.wrappedValue = newText
+            scrollSync?.contentChanged()
         }
 
         /// The document's own undo manager, so that typing marks the document as edited.

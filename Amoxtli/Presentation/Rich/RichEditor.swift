@@ -9,13 +9,14 @@ struct RichEditor: NSViewRepresentable {
     let links: LinkInteractionViewModel
     /// For anchors and the table of contents, which point at headings.
     let tableOfContents: [TOCEntry]
+    let scrollSync: SplitScrollSync?
 
     @Environment(\.undoManager) private var undoManager
     @Environment(\.typography) private var typography
     @Environment(\.colorSchemeContrast) private var contrast
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text)
+        Coordinator(text: $text, scrollSync: scrollSync)
     }
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -37,6 +38,7 @@ struct RichEditor: NSViewRepresentable {
         textView.minSize = NSSize(width: 0, height: scrollView.contentSize.height)
         scrollView.documentView = textView
         controller.attach(textView)
+        scrollSync?.attach(scrollView, editor: textView, as: .formatted)
         if text.isEmpty {
             // A new document is ready to type into.
             Task { @MainActor in textView.focusEditor() }
@@ -66,6 +68,7 @@ struct RichEditor: NSViewRepresentable {
     }
 
     static func dismantleNSView(_ scrollView: NSScrollView, coordinator: Coordinator) {
+        coordinator.scrollSync?.detach(scrollView)
         guard let textView = scrollView.documentView as? RichTextView else { return }
         textView.controller?.detach(textView)
         textView.links?.hover(nil)
@@ -76,12 +79,14 @@ struct RichEditor: NSViewRepresentable {
         var text: Binding<String>
         var undoManager: UndoManager?
         var handledScrollRequest: LinkInteractionViewModel.ScrollRequest?
+        let scrollSync: SplitScrollSync?
         /// The Markdown last shown or written, so updates that come back from typing are
         /// recognized and don't rebuild the view.
         private(set) var shownText = ""
 
-        init(text: Binding<String>) {
+        init(text: Binding<String>, scrollSync: SplitScrollSync? = nil) {
             self.text = text
+            self.scrollSync = scrollSync
         }
 
         private var pendingShow: Task<Void, Never>?
@@ -92,6 +97,7 @@ struct RichEditor: NSViewRepresentable {
             shownText = markdown
             let model = (try? MarkdownParser().parse(markdown)) ?? MarkdownModel(blocks: [])
             rebuild(textView) { textView.show(RichDocumentBuilder.paragraphs(from: model)) }
+            scrollSync?.contentChanged()
         }
 
         /// Text that changed elsewhere, as typing in the source beside this view. The whole
@@ -141,6 +147,7 @@ struct RichEditor: NSViewRepresentable {
             let paragraphs = textView.paragraphs
             textView.styler.typography = typography
             rebuild(textView) { textView.show(paragraphs) }
+            scrollSync?.contentChanged()
         }
 
         func textDidChange(_ notification: Notification) {
@@ -148,6 +155,7 @@ struct RichEditor: NSViewRepresentable {
             let markdown = MarkdownSerializer.markdown(from: textView.paragraphs)
             shownText = markdown
             text.wrappedValue = markdown
+            scrollSync?.contentChanged()
         }
 
         /// The document's own undo manager, so that typing marks the document as edited.
