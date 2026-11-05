@@ -1,6 +1,146 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Documento demasiado grande" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokument zu groß"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Document Too Large"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Documento demasiado grande"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Document trop volumineux"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Documento troppo grande"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "書類が大きすぎます"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "문서가 너무 큼"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Documento muito grande"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Документ слишком большой"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文稿过大"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件過大"
+          }
+        }
+      }
+    },
+    "Este documento ocupa %@. La vista con formato admite documentos de hasta %@; puedes leerlo y editarlo en Fuente." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Dokument ist %1$@ groß. Die formatierte Ansicht unterstützt Dokumente bis %2$@; du kannst es im Quelltext lesen und bearbeiten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This document is %1$@. The formatted view supports documents up to %2$@; you can read and edit it in Source."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este documento ocupa %1$@. La vista con formato admite documentos de hasta %2$@; puedes leerlo y editarlo en Fuente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce document fait %1$@. La vue formatée prend en charge les documents jusqu’à %2$@ ; vous pouvez le lire et le modifier dans Source."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo documento occupa %1$@. La vista formattata supporta documenti fino a %2$@; puoi leggerlo e modificarlo in Sorgente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この書類のサイズは%1$@です。フォーマット表示は%2$@までの書類に対応しています。ソースで読んだり編集したりできます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 문서의 크기는 %1$@입니다. 포맷 보기는 %2$@까지의 문서를 지원합니다. 소스에서 읽고 편집할 수 있습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este documento ocupa %1$@. A visualização formatada aceita documentos de até %2$@; você pode lê-lo e editá-lo em Fonte."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер документа — %1$@. Форматированный вид поддерживает документы до %2$@; читать и редактировать его можно в режиме «Исходный текст»."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文稿大小为 %1$@。格式视图支持最大 %2$@ 的文稿；你可以在“源文本”中阅读和编辑它。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文件大小為 %1$@。格式檢視支援最大 %2$@ 的文件；你可以在「原始碼」中閱讀和編輯它。"
+          }
+        }
+      }
+    },
     "«%@» cambió fuera de Amoxtli" : {
       "localizations" : {
         "de" : {

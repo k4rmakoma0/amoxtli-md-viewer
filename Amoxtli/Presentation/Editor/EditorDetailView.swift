@@ -28,12 +28,16 @@ struct EditorDetailView: View {
         }
         .frame(minWidth: 480, minHeight: 360)
         .task(id: documentID) {
+            showSourceIfTooLarge()
             await viewModel.load(.success(text))
         }
         .task(id: text) {
             try? await Task.sleep(for: renderDelay)
             guard !Task.isCancelled else { return }
             await viewModel.update(text)
+        }
+        .onChange(of: allowsFormatting) {
+            showSourceIfTooLarge()
         }
         .onChange(of: viewModel.tableOfContents, initial: true) { _, entries in
             links.updateAnchors(HeadingAnchors(entries: entries))
@@ -58,6 +62,8 @@ struct EditorDetailView: View {
             switch mode {
             case .source:
                 source
+            case _ where !allowsFormatting:
+                tooLargeToFormat
             case .formatted:
                 formatted
             case .split:
@@ -70,6 +76,30 @@ struct EditorDetailView: View {
             }
         }
         .id(documentID)
+    }
+
+    /// A large document opens in the source, and the formatted editor is never built for it,
+    /// even for a moment: it would freeze the window.
+    private var allowsFormatting: Bool {
+        FormattedEditingLimit.allows(text)
+    }
+
+    private func showSourceIfTooLarge() {
+        if !allowsFormatting, mode != .source { mode = .source }
+    }
+
+    /// Shown when the formatted or the split view is chosen for a large document.
+    private var tooLargeToFormat: some View {
+        let size = Int64(text.utf8.count).formatted(.byteCount(style: .file))
+        let limit = Int64(FormattedEditingLimit.maximumBytes).formatted(.byteCount(style: .file))
+        return ContentUnavailableView {
+            Label("Documento demasiado grande", systemImage: "doc.plaintext")
+        } description: {
+            Text("Este documento ocupa \(size). La vista con formato admite documentos de hasta \(limit); puedes leerlo y editarlo en Fuente.")
+        } actions: {
+            Button("Mostrar fuente") { mode = .source }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var formatted: some View {
