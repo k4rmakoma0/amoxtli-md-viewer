@@ -9,18 +9,40 @@ struct RichTextConverter {
     private static let lineSeparator = "\u{2028}"
     private static let attachmentCharacter = "\u{FFFC}"
 
+    /// Each paragraph is styled as soon as it is added, and each code block colored as soon as
+    /// it ends. Attributes are kept as an array of runs, so changing them far before the end
+    /// of a long text shifts every run after them: styling the whole text afterwards took
+    /// minutes for a document of a few megabytes.
     func attributedString(from paragraphs: [RichParagraph]) -> NSAttributedString {
+        let kinds = paragraphs.map { RichParagraphKind(block: $0.block, containers: $0.containers) }
         let result = NSMutableAttributedString()
+        var codeStart: Int?
         for (index, paragraph) in paragraphs.enumerated() {
-            let kind = RichParagraphKind(block: paragraph.block, containers: paragraph.containers)
+            let kind = kinds[index]
+            let next = kinds.indices.contains(index + 1) ? kinds[index + 1] : nil
+            let start = result.length
             result.append(content(of: paragraph, kind: kind))
-            if index < paragraphs.count - 1 {
+            if next != nil {
                 result.append(NSAttributedString(string: "\n", attributes: styler.attributes(for: kind, style: [])))
             }
+            let range = NSRange(location: start, length: result.length - start)
+            styler.style(range, as: kind, previous: index > 0 ? kinds[index - 1] : nil, next: next, in: result)
+            guard case .code(let id, _) = kind.block else { continue }
+            let blockStart = codeStart ?? start
+            if case .code(let nextID, _) = next?.block, nextID == id {
+                codeStart = blockStart
+            } else {
+                let block = NSRange(location: blockStart, length: result.length - blockStart)
+                styler.colorCode(result.contentRange(of: block), as: kind, in: result)
+                codeStart = nil
+            }
         }
-        let storage = NSTextStorage(attributedString: result)
-        styler.restyle(NSRange(location: 0, length: storage.length), in: storage)
-        return storage
+        // An empty last paragraph has no characters to carry its kind, so the one before it
+        // is spaced as `restyle` spaces it, against the empty last line.
+        if result.length > 0, result.mutableString.character(at: result.length - 1) == 0x0A {
+            styler.restyle(result.paragraphRange(at: result.length - 1), in: result)
+        }
+        return result
     }
 
     private func content(of paragraph: RichParagraph, kind: RichParagraphKind) -> NSAttributedString {

@@ -22,9 +22,12 @@ struct TableOfContentsView: View {
     }
 
     private var list: some View {
+        // Worked out once: per row, it went through every entry, which stalled the window for a
+        // document with thousands of headings.
+        let topLevel = topLevel
         // The binding covers arrow keys. Clicks go through the button, so that clicking the
         // selected entry again still scrolls back to its heading.
-        List(entries, selection: keyboardSelection) { entry in
+        return List(entries, selection: keyboardSelection) { entry in
             Button {
                 selection = entry.id
                 onSelect(entry)

@@ -136,7 +136,10 @@ struct RichEditor: NSViewRepresentable {
             change()
             textView.setSelectedRange(NSRange(location: min(selection.location, textView.string.utf16.count), length: 0))
             if let clipView, let origin, let layoutManager = textView.layoutManager, let container = textView.textContainer {
-                layoutManager.ensureLayout(for: container)
+                // Only as far as the bottom of the view: the rest is laid out in the background,
+                // and laying out all of a long document here held up the window.
+                let visible = NSRect(x: 0, y: 0, width: container.size.width, height: origin.y + clipView.bounds.height)
+                layoutManager.ensureLayout(forBoundingRect: visible, in: container)
                 clipView.scroll(to: origin)
                 textView.enclosingScrollView?.reflectScrolledClipView(clipView)
             }

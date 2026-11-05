@@ -9,6 +9,7 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
     private static let fenceKey = NSAttributedString.Key("dev.alananaya.amoxtli.fencedLine")
 
     private var font: NSFont { typography.body }
+    private let stretchLength = 16_384
 
     var baseAttributes: [NSAttributedString.Key: Any] {
         let paragraph = NSMutableParagraphStyle()
@@ -33,15 +34,31 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
         highlight(lines, in: textStorage, startsInFence: startsInFence(lines, in: textStorage), followsUp: true)
     }
 
+    /// Long stretches of lines go a stretch at a time, front to back, and their code blocks are
+    /// colored as soon as they close. Attributes are kept as an array of runs, so changing them
+    /// far before the last change shifts every run after it: styling a whole document of a few
+    /// megabytes in one go took minutes.
     private func highlight(_ lines: NSRange, in storage: NSTextStorage, startsInFence: Bool, followsUp: Bool) {
         let text = storage.string
-        let scan = MarkdownSyntaxScanner.scan(text, lines: lines, startsInFence: startsInFence)
-        apply(scan, to: lines, in: storage)
-        colorCode(touching: lines, in: storage)
-        let next = NSMaxRange(lines)
-        guard followsUp, next < storage.length, scan.endsInFence != nextLineStartsInFence(at: next, in: storage, text: text) else { return }
+        let source = text as NSString
+        let end = NSMaxRange(lines)
+        var isInFence = startsInFence
+        var location = lines.location
+        var uncolored = lines.location
+        repeat {
+            let stretch = source.lineRange(for: NSRange(location: location, length: min(stretchLength, end - location)))
+            let scan = MarkdownSyntaxScanner.scan(text, lines: stretch, startsInFence: isInFence)
+            apply(scan, to: stretch, in: storage)
+            isInFence = scan.endsInFence
+            location = NSMaxRange(stretch)
+            if !isInFence || location >= end {
+                colorCode(touching: NSRange(location: uncolored, length: location - uncolored), in: storage)
+                uncolored = location
+            }
+        } while location < end
+        guard followsUp, end < storage.length, isInFence != nextLineStartsInFence(at: end, in: storage, text: text) else { return }
         // The edit opened or closed a code block: everything below it changes.
-        highlight(NSRange(location: next, length: storage.length - next), in: storage, startsInFence: scan.endsInFence, followsUp: false)
+        highlight(NSRange(location: end, length: storage.length - end), in: storage, startsInFence: isInFence, followsUp: false)
     }
 
     private func startsInFence(_ lines: NSRange, in storage: NSTextStorage) -> Bool {

@@ -3,7 +3,9 @@ import AppKit
 /// Derives every visual attribute of the formatted editor from the paragraph kinds and inline
 /// styles stored in the text, so restyling a paragraph never depends on how it looked before.
 nonisolated final class RichStyler {
-    var typography = Typography()
+    var typography = Typography() {
+        didSet { if typography != oldValue { fonts = [:] } }
+    }
     /// The kind of the empty line at the end while the caret is on it, which the paragraph
     /// before it is spaced against, as against any next paragraph.
     var emptyLastLineKind: RichParagraphKind?
@@ -12,6 +14,9 @@ nonisolated final class RichStyler {
     /// since two paragraphs in one cell must share the same block to stay in that cell.
     private var tables: [Int: NSTextTable] = [:]
     private var cells: [RichTableCell: NSTextTableBlock] = [:]
+    /// Making a font is slow next to everything else in styling, and a document asks for the
+    /// same few thousands of times.
+    private var fonts: [FontKey: NSFont] = [:]
 
     private var size: CGFloat { CGFloat(typography.size.points) }
     var listIndent: CGFloat { 26 * typography.size.scale }
@@ -49,45 +54,49 @@ nonisolated final class RichStyler {
 
     /// Restyles whole paragraphs from what they store. Their kind comes from their first
     /// character, which is how a paragraph merged into another takes that one's kind.
-    func restyle(_ range: NSRange, in storage: NSTextStorage) {
+    func restyle(_ range: NSRange, in storage: NSMutableAttributedString) {
         var codeBlocks: [Int: (location: Int, kind: RichParagraphKind)] = [:]
         for paragraph in storage.paragraphRanges(in: range) {
             let kind = storage.paragraphKind(at: paragraph.location) ?? .body
             let previous = paragraph.location > 0 ? storage.paragraphKind(at: paragraph.location - 1) : nil
             let next = storage.paragraphKind(at: NSMaxRange(paragraph)) ?? lineAfterEnd(of: paragraph, in: storage)
-            storage.addAttribute(.richParagraph, value: kind, range: paragraph)
-            storage.addAttribute(.paragraphStyle, value: paragraphStyle(for: kind, previous: previous, next: next), range: paragraph)
-            storage.addAttribute(.foregroundColor, value: color(for: kind), range: paragraph)
-            storage.enumerateAttribute(.inlineStyle, in: paragraph) { value, run, _ in
-                let style = kind.isCode ? [] : InlineStyle(rawValue: value as? Int ?? 0)
-                storage.addAttribute(.font, value: font(for: kind, style: style), range: run)
-                set(.underlineStyle, NSUnderlineStyle.single.rawValue, if: style.contains(.underline), in: run, of: storage)
-                set(.strikethroughStyle, NSUnderlineStyle.single.rawValue, if: style.contains(.strikethrough), in: run, of: storage)
-                set(.backgroundColor, SurfaceColors.codeBackground, if: style.contains(.code), in: run, of: storage)
-            }
+            style(paragraph, as: kind, previous: previous, next: next, in: storage)
             if case .code(let id, _) = kind.block, codeBlocks[id] == nil {
                 codeBlocks[id] = (paragraph.location, kind)
             }
         }
         for block in codeBlocks.values {
-            colorCode(at: block.location, kind: block.kind, in: storage)
+            colorCode(storage.contentRange(of: storage.codeBlockRange(at: block.location)), as: block.kind, in: storage)
+        }
+    }
+
+    /// Styles one paragraph, line break included, whose neighbors are known.
+    func style(_ paragraph: NSRange, as kind: RichParagraphKind, previous: RichParagraphKind?, next: RichParagraphKind?, in storage: NSMutableAttributedString) {
+        storage.addAttribute(.richParagraph, value: kind, range: paragraph)
+        storage.addAttribute(.paragraphStyle, value: paragraphStyle(for: kind, previous: previous, next: next), range: paragraph)
+        storage.addAttribute(.foregroundColor, value: color(for: kind), range: paragraph)
+        storage.enumerateAttribute(.inlineStyle, in: paragraph) { value, run, _ in
+            let style = kind.isCode ? [] : InlineStyle(rawValue: value as? Int ?? 0)
+            storage.addAttribute(.font, value: font(for: kind, style: style), range: run)
+            set(.underlineStyle, NSUnderlineStyle.single.rawValue, if: style.contains(.underline), in: run, of: storage)
+            set(.strikethroughStyle, NSUnderlineStyle.single.rawValue, if: style.contains(.strikethrough), in: run, of: storage)
+            set(.backgroundColor, SurfaceColors.codeBackground, if: style.contains(.code), in: run, of: storage)
         }
     }
 
     /// Code is colored a whole block at a time, since a comment or a string may span lines.
-    private func colorCode(at location: Int, kind: RichParagraphKind, in storage: NSTextStorage) {
+    func colorCode(_ block: NSRange, as kind: RichParagraphKind, in storage: NSMutableAttributedString) {
         guard case .code(_, let language) = kind.block else { return }
-        let block = storage.contentRange(of: storage.codeBlockRange(at: location))
         CodeColors.color(block, of: storage, language: language.flatMap(CodeLanguage.init(fenceInfo:)), base: color(for: kind))
     }
 
-    private func lineAfterEnd(of paragraph: NSRange, in storage: NSTextStorage) -> RichParagraphKind? {
+    private func lineAfterEnd(of paragraph: NSRange, in storage: NSMutableAttributedString) -> RichParagraphKind? {
         guard NSMaxRange(paragraph) == storage.length, paragraph.length > 0,
-              (storage.string as NSString).character(at: NSMaxRange(paragraph) - 1) == 0x0A else { return nil }
+              storage.mutableString.character(at: NSMaxRange(paragraph) - 1) == 0x0A else { return nil }
         return emptyLastLineKind
     }
 
-    private func set(_ key: NSAttributedString.Key, _ value: Any, if isSet: Bool, in range: NSRange, of storage: NSTextStorage) {
+    private func set(_ key: NSAttributedString.Key, _ value: Any, if isSet: Bool, in range: NSRange, of storage: NSMutableAttributedString) {
         if isSet {
             storage.addAttribute(key, value: value, range: range)
         } else {
@@ -98,15 +107,35 @@ nonisolated final class RichStyler {
     // MARK: - Fonts
 
     func font(for kind: RichParagraphKind, style: InlineStyle) -> NSFont {
-        switch kind.block {
-        case .code:
-            return typography.code
-        case .heading(let level):
-            return withInlineStyle(style, base: typography.heading(level: level))
-        case .tableCell(let cell) where cell.row == 0:
-            return withInlineStyle(style, base: typography.body.withTraits(.bold))
-        default:
-            return withInlineStyle(style, base: typography.body)
+        let key = FontKey(kind: kind, style: style)
+        if let cached = fonts[key] { return cached }
+        let font = switch key.role {
+        case .code: typography.code
+        case .heading(let level): withInlineStyle(style, base: typography.heading(level: level))
+        case .tableHeader: withInlineStyle(style, base: typography.body.withTraits(.bold))
+        case .body: withInlineStyle(style, base: typography.body)
+        }
+        fonts[key] = font
+        return font
+    }
+
+    private struct FontKey: Hashable {
+        enum Role: Hashable {
+            case code, heading(Int), tableHeader, body
+        }
+
+        let role: Role
+        let style: Int
+
+        init(kind: RichParagraphKind, style: InlineStyle) {
+            switch kind.block {
+            case .code: role = .code
+            case .heading(let level): role = .heading(level)
+            case .tableCell(let cell) where cell.row == 0: role = .tableHeader
+            default: role = .body
+            }
+            // Code ignores inline styles.
+            self.style = role == .code ? 0 : style.rawValue
         }
     }
 

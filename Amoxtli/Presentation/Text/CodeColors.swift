@@ -40,10 +40,10 @@ nonisolated enum CodeColors {
 
     /// Colors a code block's text, which starts at `range.location`, over the base color
     /// already set on it. Without a known language the code keeps the base color.
-    static func color(_ range: NSRange, of storage: NSTextStorage, language: CodeLanguage?, base: NSColor) {
+    static func color(_ range: NSRange, of storage: NSMutableAttributedString, language: CodeLanguage?, base: NSColor) {
         storage.addAttribute(.foregroundColor, value: base, range: range)
         guard let language, range.length > 0 else { return }
-        let code = (storage.string as NSString).substring(with: range)
+        let code = storage.mutableString.substring(with: range)
         for token in CodeHighlighter.tokens(in: code, language: language) {
             let tokenRange = NSRange(location: range.location + token.range.location, length: token.range.length)
             storage.addAttribute(.foregroundColor, value: color(for: token.kind), range: tokenRange)
