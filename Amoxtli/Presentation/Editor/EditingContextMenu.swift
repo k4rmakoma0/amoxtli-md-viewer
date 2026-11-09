@@ -8,9 +8,14 @@ struct CodeLanguageChoice {
 }
 
 /// The context menu of both editors: the clipboard, the formatting tools and Select All. In a
-/// code block of the formatted editor, also its language.
+/// code block of the formatted editor, also its language and copying the whole block.
 enum EditingContextMenu {
-    static func make(for textView: NSTextView, controller: EditorController?, codeLanguage: CodeLanguageChoice? = nil) -> NSMenu {
+    static func make(
+        for textView: NSTextView,
+        controller: EditorController?,
+        codeLanguage: CodeLanguageChoice? = nil,
+        copyCode: (() -> Void)? = nil
+    ) -> NSMenu {
         let menu = NSMenu()
         menu.allowsContextMenuPlugIns = false
         menu.addItem(standardItem(String(localized: "Cortar"), action: #selector(NSText.cut(_:)), target: textView))
@@ -20,6 +25,9 @@ enum EditingContextMenu {
         menu.addItem(formatItem(controller: controller))
         if let codeLanguage {
             menu.addItem(languageItem(codeLanguage))
+        }
+        if let copyCode {
+            menu.addItem(actionItem(String(localized: "Copiar código"), systemImage: "doc.on.doc", handler: copyCode))
         }
         menu.addItem(.separator())
         menu.addItem(standardItem(String(localized: "Seleccionar todo"), action: #selector(NSText.selectAll(_:)), target: textView))
@@ -63,6 +71,15 @@ enum EditingContextMenu {
         }
         let item = NSMenuItem(title: String(localized: "Lenguaje"), action: nil, keyEquivalent: "")
         item.submenu = submenu
+        return item
+    }
+
+    private static func actionItem(_ title: String, systemImage: String, handler: @escaping () -> Void) -> NSMenuItem {
+        let action = MenuAction(handler: handler)
+        let item = NSMenuItem(title: title, action: #selector(MenuAction.invoke), keyEquivalent: "")
+        item.target = action
+        item.representedObject = action
+        item.image = NSImage(systemSymbolName: systemImage, accessibilityDescription: nil)
         return item
     }
 

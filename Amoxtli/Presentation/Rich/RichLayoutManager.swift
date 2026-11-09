@@ -8,6 +8,8 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
     /// The kind of the empty line at the end while the caret is on it, which only the text
     /// view knows. A code block that continues there doesn't end on the line above.
     var emptyLastLineKind: RichParagraphKind?
+    /// The code block whose copy button shows a check mark, for a moment after it copied.
+    var copiedCodeBlock: Int?
 
     /// The markers to draw, by the location of the paragraph that starts each item, and the
     /// numbering after the last paragraph.
@@ -22,6 +24,7 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
     ) {
         super.processEditing(for: textStorage, edited: editMask, range: newCharRange, changeInLength: delta, invalidatedRange: invalidatedCharRange)
         numbering = nil
+        copiedCodeBlock = nil
         // Numbers further down may change with any edit to the list. Asking for glyph ranges
         // isn't allowed while the text is being edited, so the whole view repaints. The editors
         // only edit their text on the main thread, though AppKit doesn't declare it here.
@@ -73,7 +76,7 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
         if let background = emptyLastLineCodeBackground(styler: styler) {
             fillCode(background.rect.offsetBy(dx: origin.x, dy: origin.y), roundsTop: background.isFirst, roundsBottom: true)
             if background.isFirst {
-                drawChip(for: kind, in: background.rect.offsetBy(dx: origin.x, dy: origin.y), styler: styler)
+                drawStripControls(for: kind, block: textStorage.length, in: background.rect.offsetBy(dx: origin.x, dy: origin.y), styler: styler)
             }
         }
         drawQuoteBars(line, kind: kind, styler: styler)
@@ -164,7 +167,7 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
     private let codePaddingY: CGFloat = 6
 
     /// Covers the lines of code without the spacing around the block, plus some padding at
-    /// its last line and the strip with the language chip above its first.
+    /// its last line and the strip with the copy button and language chip above its first.
     private func drawCodeBackground(_ used: [NSRect], area: NSRect, kind: RichParagraphKind, paragraph: NSRange, styler: RichStyler) {
         guard let textStorage, let first = used.first, let last = used.last else { return }
         let isFirst = paragraph.location == 0 || textStorage.paragraphKind(at: paragraph.location - 1) != kind
@@ -178,7 +181,7 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
         let background = NSRect(x: area.minX + indent, y: top, width: area.width - indent, height: bottom - top)
         fillCode(background, roundsTop: hasStrip, roundsBottom: isLast)
         if hasStrip {
-            drawChip(for: kind, in: background, styler: styler)
+            drawStripControls(for: kind, block: paragraph.location, in: background, styler: styler)
         }
     }
 
@@ -191,7 +194,7 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
         let top = codeTop(firstLineTop: first.used.minY, styler: styler)
         let strip = NSRect(x: first.rect.minX + indent, y: top, width: first.rect.width - indent, height: first.rect.minY - top)
         fillCode(strip.offsetBy(dx: origin.x, dy: origin.y), roundsTop: true, roundsBottom: false)
-        drawChip(for: kind, in: strip.offsetBy(dx: origin.x, dy: origin.y), styler: styler)
+        drawStripControls(for: kind, block: 0, in: strip.offsetBy(dx: origin.x, dy: origin.y), styler: styler)
     }
 
     private func codeTop(firstLineTop: CGFloat, styler: RichStyler) -> CGFloat {
@@ -264,8 +267,13 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
         return NSRect(x: background.maxX - 6 - width, y: background.minY + 6, width: width, height: styler.codeChipHeight)
     }
 
-    private func drawChip(for kind: RichParagraphKind, in background: NSRect, styler: RichStyler) {
+    private func drawStripControls(for kind: RichParagraphKind, block: Int, in background: NSRect, styler: RichStyler) {
         let chip = chipRect(for: kind, in: background, styler: styler)
+        drawChip(for: kind, in: chip, styler: styler)
+        drawCopyButton(in: copyButtonRect(besideChip: chip), showsCheckmark: copiedCodeBlock == block, styler: styler)
+    }
+
+    private func drawChip(for kind: RichParagraphKind, in chip: NSRect, styler: RichStyler) {
         NSColor.tertiarySystemFill.setFill()
         NSBezierPath(roundedRect: chip, xRadius: 5, yRadius: 5).fill()
         let attributes = chipAttributes(styler: styler)
@@ -278,35 +286,73 @@ nonisolated final class RichLayoutManager: NSLayoutManager {
         }
     }
 
-    /// The chip of the code block that starts at a location (the text's length for a block
-    /// that is only the empty last line), in container coordinates.
-    func codeChipRect(forBlockAt location: Int) -> NSRect? {
-        guard let textStorage, let styler else { return nil }
+    // MARK: - Copy button
+
+    /// A square as tall as the chip, just to its left.
+    private func copyButtonRect(besideChip chip: NSRect) -> NSRect {
+        NSRect(x: chip.minX - 4 - chip.height, y: chip.minY, width: chip.height, height: chip.height)
+    }
+
+    private func drawCopyButton(in button: NSRect, showsCheckmark: Bool, styler: RichStyler) {
+        NSColor.tertiarySystemFill.setFill()
+        NSBezierPath(roundedRect: button, xRadius: 5, yRadius: 5).fill()
+        let configuration = NSImage.SymbolConfiguration(pointSize: styler.codeChipFont.pointSize * 0.85, weight: .medium)
+            .applying(NSImage.SymbolConfiguration(paletteColors: [.secondaryLabelColor]))
+        let name = showsCheckmark ? "checkmark" : "doc.on.doc"
+        guard let symbol = NSImage(systemSymbolName: name, accessibilityDescription: nil)?.withSymbolConfiguration(configuration) else { return }
+        let rect = NSRect(x: button.midX - symbol.size.width / 2, y: button.midY - symbol.size.height / 2, width: symbol.size.width, height: symbol.size.height)
+        symbol.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1, respectFlipped: true, hints: nil)
+    }
+
+    // MARK: - Strip hit testing
+
+    /// The background of the strip of the code block that starts at a location (the text's
+    /// length for a block that is only the empty last line), in container coordinates.
+    private func stripBackground(forBlockAt location: Int, styler: RichStyler) -> (kind: RichParagraphKind, rect: NSRect)? {
+        guard let textStorage else { return nil }
         if location == textStorage.length {
             guard let kind = emptyLastLineKind, let background = emptyLastLineCodeBackground(styler: styler), background.isFirst else { return nil }
-            return chipRect(for: kind, in: background.rect, styler: styler)
+            return (kind, background.rect)
         }
         guard let kind = textStorage.paragraphKind(at: location), kind.isCode else { return nil }
-        let lines = lineRects(of: textStorage.paragraphRange(at: location))
-        guard let first = lines.first else { return nil }
+        guard let first = lineRects(of: textStorage.paragraphRange(at: location)).first else { return nil }
         let indent = styler.indent(of: kind.containers)
         let top = codeTop(firstLineTop: first.used.minY, styler: styler)
-        let background = NSRect(x: first.rect.minX + indent, y: top, width: first.rect.width - indent, height: first.rect.maxY - top)
-        return chipRect(for: kind, in: background, styler: styler)
+        return (kind, NSRect(x: first.rect.minX + indent, y: top, width: first.rect.width - indent, height: first.rect.maxY - top))
+    }
+
+    /// The chip of the code block that starts at a location, in container coordinates.
+    func codeChipRect(forBlockAt location: Int) -> NSRect? {
+        guard let styler, let background = stripBackground(forBlockAt: location, styler: styler) else { return nil }
+        return chipRect(for: background.kind, in: background.rect, styler: styler)
+    }
+
+    /// The copy button of the code block that starts at a location, in container coordinates.
+    func codeCopyButtonRect(forBlockAt location: Int) -> NSRect? {
+        codeChipRect(forBlockAt: location).map(copyButtonRect(besideChip:))
     }
 
     /// The code block whose chip is at a point in container coordinates, as the location its
     /// first paragraph starts at.
     func codeBlock(withChipAt point: NSPoint) -> Int? {
+        codeBlock(at: point, hitting: codeChipRect(forBlockAt:))
+    }
+
+    /// The code block whose copy button is at a point in container coordinates.
+    func codeBlock(withCopyButtonAt point: NSPoint) -> Int? {
+        codeBlock(at: point, hitting: codeCopyButtonRect(forBlockAt:))
+    }
+
+    private func codeBlock(at point: NSPoint, hitting control: (Int) -> NSRect?) -> Int? {
         guard let textStorage, let container = textContainers.first else { return nil }
-        if let chip = codeChipRect(forBlockAt: textStorage.length), chip.contains(point) {
+        if let rect = control(textStorage.length), rect.contains(point) {
             return textStorage.length
         }
         guard textStorage.length > 0 else { return nil }
         let character = characterIndexForGlyph(at: glyphIndex(for: point, in: container))
         guard character < textStorage.length, textStorage.paragraphKind(at: character)?.isCode == true else { return nil }
         let block = textStorage.codeBlockRange(at: character).location
-        guard let chip = codeChipRect(forBlockAt: block), chip.contains(point) else { return nil }
+        guard let rect = control(block), rect.contains(point) else { return nil }
         return block
     }
 

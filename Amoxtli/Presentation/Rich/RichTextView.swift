@@ -608,13 +608,17 @@ final class RichTextView: NSTextView {
         super.mouseMoved(with: event)
         let point = convert(event.locationInWindow, from: nil)
         links?.hover(linkCharacterIndex(at: point).flatMap(link(atCharacter:)))
-        if codeBlock(withChipAt: point) != nil {
+        if codeBlock(withChipAt: point) != nil || codeBlock(withCopyButtonAt: point) != nil {
             NSCursor.pointingHand.set()
         }
     }
 
     override func mouseDown(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
+        if let block = codeBlock(withCopyButtonAt: point) {
+            copyCode(ofBlockAt: block)
+            return
+        }
         guard let block = codeBlock(withChipAt: point) else { return super.mouseDown(with: event) }
         window?.makeFirstResponder(self)
         showLanguageMenu(forBlockAt: block)
@@ -640,7 +644,8 @@ final class RichTextView: NSTextView {
         let language = codeLanguageAtCaret.map { current in
             CodeLanguageChoice(current: current) { [weak self] in self?.setCodeLanguage($0) }
         }
-        return EditingContextMenu.make(for: self, controller: controller, codeLanguage: language)
+        let copyCode = codeBlockAtCaret.map { block in { [weak self] in _ = self?.copyCode(ofBlockAt: block) } }
+        return EditingContextMenu.make(for: self, controller: controller, codeLanguage: language, copyCode: copyCode)
     }
 }
 

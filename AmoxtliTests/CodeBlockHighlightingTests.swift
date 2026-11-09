@@ -134,6 +134,8 @@ final class RichCodeHighlightingTests: XCTestCase {
         }
         XCTAssertTrue(try menuTitles(at: "let b").contains(String(localized: "Lenguaje")))
         XCTAssertFalse(try menuTitles(at: "texto").contains(String(localized: "Lenguaje")))
+        XCTAssertTrue(try menuTitles(at: "let b").contains(String(localized: "Copiar código")))
+        XCTAssertFalse(try menuTitles(at: "texto").contains(String(localized: "Copiar código")))
     }
 
     private func location(of text: String, in view: RichTextView) -> Int {
@@ -205,6 +207,60 @@ final class RichCodeHighlightingTests: XCTestCase {
         let caret = view.selectedRange()
         _ = view.languageMenu(forBlockAt: 0)
         XCTAssertEqual(view.selectedRange(), caret)
+    }
+
+    // MARK: - Copy button
+
+    private func scratchPasteboard() -> NSPasteboard {
+        NSPasteboard(name: NSPasteboard.Name("AmoxtliTests.\(UUID().uuidString)"))
+    }
+
+    func testEveryCodeBlockHasACopyButtonBesideItsChip() throws {
+        let view = try makeView("```\n{}\n```\n\ntexto\n\n```js\nlet x\n```")
+        for start in [0, location(of: "let x", in: view)] {
+            let chip = try XCTUnwrap(view.codeChipRect(forBlockAt: start))
+            let button = try XCTUnwrap(view.codeCopyButtonRect(forBlockAt: start))
+            XCTAssertLessThan(button.maxX, chip.minX)
+            XCTAssertEqual(button.midY, chip.midY, accuracy: 0.5)
+            XCTAssertEqual(view.codeBlock(withCopyButtonAt: NSPoint(x: button.midX, y: button.midY)), start)
+            XCTAssertNil(view.codeBlock(withChipAt: NSPoint(x: button.midX, y: button.midY)))
+            XCTAssertNil(view.codeBlock(withCopyButtonAt: NSPoint(x: chip.midX, y: chip.midY)))
+        }
+        XCTAssertNil(view.codeCopyButtonRect(forBlockAt: location(of: "texto", in: view)))
+    }
+
+    func testCopyButtonCopiesTheWholeBlockWithoutTheFence() throws {
+        let view = try makeView("intro\n\n```swift\nlet a = 1\n\nlet b = \"é😀\"\n```\n\nfin")
+        let pasteboard = scratchPasteboard()
+        XCTAssertTrue(view.copyCode(ofBlockAt: location(of: "let b", in: view), to: pasteboard))
+        XCTAssertEqual(pasteboard.string(forType: .string), "let a = 1\n\nlet b = \"é😀\"")
+        XCTAssertEqual(markdown(of: view), "intro\n\n```swift\nlet a = 1\n\nlet b = \"é😀\"\n```\n\nfin\n")
+    }
+
+    func testCopyOnlyCopiesItsOwnBlock() throws {
+        let view = try makeView("```\nuno\n```\n\n```\ndos\n```")
+        let pasteboard = scratchPasteboard()
+        view.copyCode(ofBlockAt: location(of: "dos", in: view), to: pasteboard)
+        XCTAssertEqual(pasteboard.string(forType: .string), "dos")
+    }
+
+    func testOutsideCodeNothingIsCopied() throws {
+        let view = try makeView("texto")
+        let pasteboard = scratchPasteboard()
+        pasteboard.clearContents()
+        pasteboard.setString("antes", forType: .string)
+        XCTAssertFalse(view.copyCode(ofBlockAt: 0, to: pasteboard))
+        XCTAssertEqual(pasteboard.string(forType: .string), "antes")
+    }
+
+    func testCodeBlockAtCaretFindsWhereTheBlockStarts() throws {
+        let view = try makeView("texto\n\n```\nuno\ndos\n```")
+        placeCaret(after: "do", in: view)
+        XCTAssertEqual(view.codeBlockAtCaret, location(of: "uno", in: view))
+        placeCaret(after: "dos", in: view)
+        XCTAssertEqual(view.codeBlockAtCaret, location(of: "uno", in: view))
+        placeCaret(after: "tex", in: view)
+        XCTAssertNil(view.codeBlockAtCaret)
     }
 
     func testOutsideCodeThereIsNoLanguage() throws {
