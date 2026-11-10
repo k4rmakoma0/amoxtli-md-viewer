@@ -19,19 +19,25 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
 
     /// Styles the whole text again, as when the typography changes.
     func restyle(_ storage: NSTextStorage) {
+        storage.beginEditing()
         highlight(NSRange(location: 0, length: storage.length), in: storage, startsInFence: false, followsUp: false)
+        storage.endEditing()
     }
 
-    // `willProcessEditing` is where the delegate may change attributes of the edited text.
+    // Not in `willProcessEditing`: restyling the whole line there widens the edited range, and
+    // the TextKit 2 text view then put the caret at the end of the line after every keystroke.
+    // Once the edit is processed, the attributes change as an edit of their own.
     func textStorage(
         _ textStorage: NSTextStorage,
-        willProcessEditing editedMask: NSTextStorageEditActions,
+        didProcessEditing editedMask: NSTextStorageEditActions,
         range editedRange: NSRange,
         changeInLength delta: Int
     ) {
         guard editedMask.contains(.editedCharacters) else { return }
         let lines = (textStorage.string as NSString).lineRange(for: editedRange)
+        textStorage.beginEditing()
         highlight(lines, in: textStorage, startsInFence: startsInFence(lines, in: textStorage), followsUp: true)
+        textStorage.endEditing()
     }
 
     /// Long stretches of lines go a stretch at a time, front to back, and their code blocks are
@@ -81,7 +87,6 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
     }
 
     private func apply(_ scan: SyntaxScan, to lines: NSRange, in storage: NSTextStorage) {
-        storage.beginEditing()
         storage.setAttributes(baseAttributes, range: lines)
         for line in scan.fencedLines {
             storage.addAttribute(Self.fenceKey, value: true, range: line)
@@ -89,7 +94,6 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
         for span in scan.spans {
             style(span, in: storage)
         }
-        storage.endEditing()
     }
 
     // MARK: - Code
@@ -130,9 +134,7 @@ final class SourceHighlighter: NSObject, NSTextStorageDelegate {
 
     private func color(_ code: NSRange, info: String, in storage: NSTextStorage) {
         guard code.length > 0, let language = CodeLanguage(fenceInfo: info) else { return }
-        storage.beginEditing()
         CodeColors.color(code, of: storage, language: language, base: .labelColor)
-        storage.endEditing()
     }
 
     private func content(of line: NSRange, in source: NSString) -> NSRange {
