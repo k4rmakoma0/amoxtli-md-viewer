@@ -28,7 +28,7 @@ Escribe y lee Markdown fácil
 **Promotional Text**
 
 ```text
-Escribe en Markdown sin ver un solo símbolo, o con todos a la vista. Edita con formato, el Markdown directo o ambos lado a lado.
+Escribe en Markdown sin ver un solo símbolo, o con todos a la vista. Con código a color en Swift, Python, JavaScript y más, y un botón para copiar cada bloque.
 ```
 
 **Description**
@@ -39,12 +39,19 @@ Amoxtli es un editor de Markdown nativo para Mac, pensado también para quien no
 TRES FORMAS DE EDITAR
 • Formato: escribe como en un procesador de texto, sin ver ningún símbolo de Markdown
 • Fuente: el Markdown con colores para entenderlo de un vistazo
-• Dividido: los dos lado a lado, y puedes editar en cualquiera
+• Dividido: los dos lado a lado, con el desplazamiento sincronizado, y puedes editar en cualquiera
 
 HERRAMIENTAS A LA MANO
 • Títulos, negrita, cursiva, subrayado, tachado, código, citas, listas, enlaces, tablas y líneas divisorias
 • En la barra de herramientas, en el menú Formato con atajos de teclado y en el clic derecho
 • Elige el tipo de letra y ajusta el tamaño del texto
+• La barra de herramientas muestra el formato que hay donde está el cursor
+• Atajos de Markdown: escribe # al inicio de una línea para crear un título, y Return continúa listas y citas también en Fuente
+
+BLOQUES DE CÓDIGO
+• Colores por lenguaje: Swift, Python, JavaScript, TypeScript, JSON, HTML, XML, CSS, SQL y Shell
+• Elige el lenguaje de cada bloque desde su etiqueta, sin escribir sintaxis
+• Copia el código de un bloque con un clic
 
 TRABAJA CON CARPETAS
 • Abre una carpeta para ver y editar sus archivos Markdown, también los de subcarpetas
@@ -71,7 +78,7 @@ Amoxtli no tiene cuentas, anuncios ni rastreo. Es gratuito y de código abierto,
 **Keywords**
 
 ```text
-md,editor,escribir,notas,readme,formato,texto,documentos,vista previa,carpeta
+md,editor,escribir,notas,readme,formato,texto,documentos,vista previa,carpeta,código
 ```
 
 ## English (U.S.)
@@ -91,7 +98,7 @@ Write and read Markdown easily
 **Promotional Text**
 
 ```text
-Write Markdown without seeing a single symbol, or with all of them in view. Edit formatted, edit the Markdown itself, or both side by side.
+Write Markdown without seeing a single symbol, or with all of them in view. With code colored for Swift, Python, JavaScript, and more, and a button to copy each block.
 ```
 
 **Description**
@@ -102,12 +109,19 @@ Amoxtli is a native Markdown editor for Mac, made for people who don’t code to
 THREE WAYS TO EDIT
 • Formatted: write as in a word processor, without seeing any Markdown symbols
 • Source: the Markdown, colored so it’s easy to follow
-• Split: both side by side, and you can edit either one
+• Split: both side by side, scrolling together, and you can edit either one
 
 TOOLS AT HAND
 • Headings, bold, italic, underline, strikethrough, code, quotes, lists, links, tables, and dividers
 • In the toolbar, in the Format menu with keyboard shortcuts, and in the context menu
 • Choose a typeface and adjust the text size
+• The toolbar shows the formatting where the cursor is
+• Markdown shortcuts: type # at the start of a line for a heading, and Return continues lists and quotes in Source too
+
+CODE BLOCKS
+• Colored by language: Swift, Python, JavaScript, TypeScript, JSON, HTML, XML, CSS, SQL, and Shell
+• Choose each block’s language from its label, without typing any syntax
+• Copy a block’s code with one click
 
 WORK WITH FOLDERS
 • Open a folder to see and edit its Markdown files, including those in subfolders
@@ -134,7 +148,7 @@ Amoxtli has no accounts, ads, or tracking. It’s free and open source under the
 **Keywords**
 
 ```text
-md,editor,writer,notes,readme,formatting,text,docs,preview,folder,wysiwyg
+md,editor,writer,notes,readme,formatting,text,docs,preview,folder,wysiwyg,code
 ```
 
 ## Français
@@ -154,7 +168,7 @@ Amoxtli : Éditeur Markdown
 **Promotional Text**
 
 ```text
-Écrivez en Markdown sans voir un seul symbole, ou en les voyant tous. Modifiez le texte mis en forme, le Markdown lui-même, ou les deux côte à côte.
+Écrivez en Markdown sans voir un seul symbole, ou en les voyant tous. Avec du code coloré pour Swift, Python, JavaScript et plus, et un bouton pour copier chaque bloc.
 ```
 
 **Description**
@@ -165,12 +179,19 @@ Amoxtli est un éditeur Markdown natif pour Mac, pensé aussi pour ceux qui ne p
 TROIS FAÇONS D’ÉCRIRE
 • Mis en forme : écrivez comme dans un traitement de texte, sans voir aucun symbole Markdown
 • Source : le Markdown, en couleurs pour le lire d’un coup d’œil
-• Partagé : les deux côte à côte, modifiables l’un comme l’autre
+• Partagé : les deux côte à côte, défilant ensemble, modifiables l’un comme l’autre
 
 DES OUTILS À PORTÉE DE MAIN
 • Titres, gras, italique, souligné, barré, code, citations, listes, liens, tableaux et séparateurs
 • Dans la barre d’outils, dans le menu Format avec raccourcis clavier et dans le menu contextuel
 • Choisissez la police et réglez la taille du texte
+• La barre d’outils montre la mise en forme à l’endroit du curseur
+• Raccourcis Markdown : tapez # en début de ligne pour un titre, et Retour prolonge listes et citations, aussi dans Source
+
+BLOCS DE CODE
+• Couleurs selon le langage : Swift, Python, JavaScript, TypeScript, JSON, HTML, XML, CSS, SQL et Shell
+• Choisissez le langage de chaque bloc depuis son étiquette, sans écrire de syntaxe
+• Copiez le code d’un bloc en un clic
 
 TRAVAILLEZ AVEC DES DOSSIERS
 • Ouvrez un dossier pour voir et modifier ses fichiers Markdown, y compris ceux des sous-dossiers
@@ -197,7 +218,7 @@ Amoxtli n’a ni compte, ni publicité, ni pistage. Il est gratuit et open sourc
 **Keywords**
 
 ```text
-md,éditeur,écrire,notes,readme,mise en forme,texte,documents,aperçu,dossier
+md,éditeur,écrire,notes,readme,mise en forme,texte,documents,aperçu,dossier,code
 ```
 
 ## Deutsch
@@ -217,7 +238,7 @@ Markdown einfach schreiben
 **Promotional Text**
 
 ```text
-Schreibe Markdown, ohne ein einziges Zeichen zu sehen, oder mit allen im Blick. Bearbeite formatiert, direkt im Markdown oder beides nebeneinander.
+Schreibe Markdown, ohne ein einziges Zeichen zu sehen, oder mit allen im Blick. Mit farbigem Code für Swift, Python, JavaScript und mehr – jeder Block per Klick kopiert.
 ```
 
 **Description**
@@ -228,12 +249,19 @@ Amoxtli ist ein nativer Markdown-Editor für den Mac, gedacht auch für alle, di
 DREI ARTEN ZU SCHREIBEN
 • Formatiert: Schreibe wie in einer Textverarbeitung, ohne Markdown-Zeichen zu sehen
 • Quelltext: das Markdown, farbig hervorgehoben und leicht zu überblicken
-• Geteilt: beides nebeneinander, und du kannst auf beiden Seiten schreiben
+• Geteilt: beides nebeneinander, synchron gescrollt, und du kannst auf beiden Seiten schreiben
 
 WERKZEUGE GRIFFBEREIT
 • Überschriften, fett, kursiv, unterstrichen, durchgestrichen, Code, Zitate, Listen, Links, Tabellen und Trennlinien
 • In der Symbolleiste, im Menü „Format“ mit Tastaturkurzbefehlen und im Kontextmenü
 • Wähle die Schrift und passe die Textgröße an
+• Die Symbolleiste zeigt die Formatierung an der Einfügemarke
+• Markdown-Kürzel: Tippe # am Zeilenanfang für eine Überschrift, und die Return-Taste setzt Listen und Zitate fort, auch im Quelltext
+
+CODEBLÖCKE
+• Farben je nach Sprache: Swift, Python, JavaScript, TypeScript, JSON, HTML, XML, CSS, SQL und Shell
+• Wähle die Sprache jedes Blocks über sein Etikett, ohne Syntax zu tippen
+• Kopiere den Code eines Blocks mit einem Klick
 
 ARBEITE MIT ORDNERN
 • Öffne einen Ordner, um seine Markdown-Dateien zu sehen und zu bearbeiten, auch in Unterordnern
@@ -260,7 +288,7 @@ Amoxtli hat keine Accounts, keine Werbung und kein Tracking. Es ist kostenlos un
 **Keywords**
 
 ```text
-md,editor,schreiben,notizen,readme,formatierung,text,dokumente,vorschau,ordner
+md,editor,schreiben,notizen,readme,formatierung,text,dokumente,vorschau,ordner,code
 ```
 
 ## Italiano
@@ -280,7 +308,7 @@ Scrivi e leggi Markdown
 **Promotional Text**
 
 ```text
-Scrivi in Markdown senza vedere un solo simbolo, o con tutti in vista. Modifica il testo formattato, il Markdown stesso o entrambi affiancati.
+Scrivi in Markdown senza vedere un solo simbolo, o con tutti in vista. Con codice a colori per Swift, Python, JavaScript e altri, e un pulsante per copiare ogni blocco.
 ```
 
 **Description**
@@ -291,12 +319,19 @@ Amoxtli è un editor Markdown nativo per Mac, pensato anche per chi non programm
 TRE MODI DI SCRIVERE
 • Formattato: scrivi come in un elaboratore di testi, senza vedere alcun simbolo Markdown
 • Sorgente: il Markdown, a colori per capirlo a colpo d’occhio
-• Diviso: entrambi affiancati, e puoi scrivere in tutti e due
+• Diviso: entrambi affiancati, con lo scorrimento sincronizzato, e puoi scrivere in tutti e due
 
 STRUMENTI A PORTATA DI MANO
 • Titoli, grassetto, corsivo, sottolineato, barrato, codice, citazioni, elenchi, link, tabelle e linee divisorie
 • Nella barra strumenti, nel menu Formato con abbreviazioni da tastiera e nel menu contestuale
 • Scegli il font e regola le dimensioni del testo
+• La barra strumenti mostra la formattazione nel punto del cursore
+• Abbreviazioni Markdown: digita # a inizio riga per un titolo, e Invio continua elenchi e citazioni anche in Sorgente
+
+BLOCCHI DI CODICE
+• Colori per linguaggio: Swift, Python, JavaScript, TypeScript, JSON, HTML, XML, CSS, SQL e Shell
+• Scegli il linguaggio di ogni blocco dalla sua etichetta, senza scrivere sintassi
+• Copia il codice di un blocco con un clic
 
 LAVORA CON LE CARTELLE
 • Apri una cartella per vedere e modificare i suoi file Markdown, anche quelli nelle sottocartelle
@@ -323,7 +358,7 @@ Amoxtli non ha account, pubblicità né tracciamento. È gratuito e open source,
 **Keywords**
 
 ```text
-md,editor,scrivere,note,readme,formattazione,testo,documenti,anteprima,cartella
+md,editor,scrivere,note,readme,formattazione,testo,documenti,anteprima,cartella,codice
 ```
 
 ## Português (Brasil)
@@ -343,7 +378,7 @@ Escreva e leia Markdown fácil
 **Promotional Text**
 
 ```text
-Escreva em Markdown sem ver um único símbolo, ou com todos à vista. Edite com formatação, o Markdown direto ou os dois lado a lado.
+Escreva em Markdown sem ver um único símbolo, ou com todos à vista. Com código colorido para Swift, Python, JavaScript e mais, e um botão para copiar cada bloco.
 ```
 
 **Description**
@@ -354,12 +389,19 @@ Amoxtli é um editor de Markdown nativo para Mac, pensado também para quem não
 TRÊS JEITOS DE EDITAR
 • Formatado: escreva como em um processador de texto, sem ver nenhum símbolo de Markdown
 • Fonte: o Markdown, colorido para entender de relance
-• Dividido: os dois lado a lado, e você pode editar em qualquer um
+• Dividido: os dois lado a lado, com a rolagem sincronizada, e você pode editar em qualquer um
 
 FERRAMENTAS À MÃO
 • Títulos, negrito, itálico, sublinhado, tachado, código, citações, listas, links, tabelas e divisórias
 • Na barra de ferramentas, no menu Formatar com atalhos de teclado e no menu de contexto
 • Escolha a fonte e ajuste o tamanho do texto
+• A barra de ferramentas mostra a formatação onde está o cursor
+• Atalhos de Markdown: digite # no início de uma linha para criar um título, e Return continua listas e citações também na Fonte
+
+BLOCOS DE CÓDIGO
+• Cores por linguagem: Swift, Python, JavaScript, TypeScript, JSON, HTML, XML, CSS, SQL e Shell
+• Escolha a linguagem de cada bloco pela etiqueta, sem digitar sintaxe
+• Copie o código de um bloco com um clique
 
 TRABALHE COM PASTAS
 • Abra uma pasta para ver e editar seus arquivos Markdown, inclusive os de subpastas
@@ -386,7 +428,7 @@ O Amoxtli não tem contas, anúncios nem rastreamento. É gratuito e de código 
 **Keywords**
 
 ```text
-md,editor,escrever,notas,readme,formatação,texto,documentos,prévia,pasta
+md,editor,escrever,notas,readme,formatação,texto,documentos,prévia,pasta,código
 ```
 
 ## Русский
@@ -406,7 +448,7 @@ Amoxtli: редактор Markdown
 **Promotional Text**
 
 ```text
-Пишите в Markdown, не видя ни одного символа разметки, или видя их все. Редактируйте текст с форматированием, сам Markdown или оба рядом.
+Пишите в Markdown, не видя ни одного символа разметки, или видя их все. Код подсвечивается для Swift, Python, JavaScript и других языков, а блок копируется одной кнопкой.
 ```
 
 **Description**
@@ -417,12 +459,19 @@ Amoxtli — нативный редактор Markdown для Mac, создан�
 ТРИ СПОСОБА ПИСАТЬ
 • С форматированием: пишите как в текстовом редакторе, не видя символов Markdown
 • Исходный текст: Markdown с цветовой подсветкой, понятный с первого взгляда
-• Разделенный вид: оба рядом, и писать можно в любом
+• Разделенный вид: оба рядом, прокручиваются вместе, и писать можно в любом
 
 ИНСТРУМЕНТЫ ПОД РУКОЙ
 • Заголовки, жирный, курсив, подчеркивание, зачеркивание, код, цитаты, списки, ссылки, таблицы и разделители
 • На панели инструментов, в меню «Формат» с сочетаниями клавиш и в контекстном меню
 • Выбирайте шрифт и меняйте размер текста
+• Панель инструментов показывает форматирование там, где стоит курсор
+• Сокращения Markdown: введите # в начале строки, чтобы создать заголовок, а Return продолжает списки и цитаты и в исходном тексте
+
+БЛОКИ КОДА
+• Подсветка по языку: Swift, Python, JavaScript, TypeScript, JSON, HTML, XML, CSS, SQL и Shell
+• Выбирайте язык блока на его метке, без синтаксиса
+• Копируйте код блока одним нажатием
 
 РАБОТА С ПАПКАМИ
 • Откройте папку, чтобы просматривать и редактировать ее файлы Markdown, включая вложенные папки
@@ -449,7 +498,7 @@ Amoxtli — нативный редактор Markdown для Mac, создан�
 **Keywords**
 
 ```text
-md,редактор,писать,заметки,readme,форматирование,текст,документы,папка
+md,редактор,писать,заметки,readme,форматирование,текст,документы,папка,код
 ```
 
 ## 日本語
@@ -469,7 +518,7 @@ Markdownを簡単に書いて読む
 **Promotional Text**
 
 ```text
-記号をひとつも見ずに、またはすべて見ながらMarkdownを書けます。書式付きで編集、Markdownを直接編集、または両方を並べて編集できます。
+記号をひとつも見ずに、またはすべて見ながらMarkdownを書けます。Swift、Python、JavaScriptなどのコードは色分けされ、ブロックごとにワンクリックでコピーできます。
 ```
 
 **Description**
@@ -480,12 +529,19 @@ Amoxtliは、プログラミングをしない人にも使いやすいMac用の�
 3つの編集方法
 • 書式付き:ワープロのように書けて、Markdownの記号は表示されません
 • ソース:色分けされたMarkdownを一目で把握できます
-• 分割:両方を並べて表示し、どちらでも編集できます
+• 分割:両方を並べて表示し、スクロールも連動して、どちらでも編集できます
 
 すぐ使えるツール
 • 見出し、太字、斜体、下線、取り消し線、コード、引用、リスト、リンク、表、区切り線
 • ツールバー、キーボードショートカット付きの「フォーマット」メニュー、コンテキストメニューから使えます
 • 書体を選び、テキストのサイズを調整できます
+• ツールバーにカーソル位置の書式が表示されます
+• Markdownのショートカット:行頭に#を入力すると見出しになり、ソースでもReturnでリストや引用が続きます
+
+コードブロック
+• 言語ごとに色分け:Swift、Python、JavaScript、TypeScript、JSON、HTML、XML、CSS、SQL、Shell
+• 各ブロックの言語はラベルから選べるので、構文を書く必要はありません
+• ブロックのコードをワンクリックでコピーできます
 
 フォルダで作業
 • フォルダを開いて、サブフォルダも含めたMarkdownファイルを表示・編集できます
@@ -512,7 +568,7 @@ Amoxtliにはアカウント、広告、トラッキングはありません。M
 **Keywords**
 
 ```text
-md,エディタ,書く,メモ,readme,書式,テキスト,書類,プレビュー,フォルダ
+md,エディタ,書く,メモ,readme,書式,テキスト,書類,プレビュー,フォルダ,コード
 ```
 
 ## 한국어
@@ -532,7 +588,7 @@ Markdown을 쉽게 쓰고 읽기
 **Promotional Text**
 
 ```text
-기호를 하나도 보지 않거나 모두 보면서 Markdown을 작성하십시오. 서식을 적용해 편집하거나, Markdown을 직접 편집하거나, 둘을 나란히 편집할 수 있습니다.
+기호를 하나도 보지 않거나 모두 보면서 Markdown을 작성하십시오. Swift, Python, JavaScript 등의 코드는 색으로 구분되며, 블록마다 클릭 한 번으로 복사할 수 있습니다.
 ```
 
 **Description**
@@ -543,12 +599,19 @@ Amoxtli는 프로그래밍을 하지 않는 사람도 쓰기 쉬운 Mac용 네�
 세 가지 편집 방식
 • 서식: 워드 프로세서처럼 작성하며 Markdown 기호는 보이지 않습니다
 • 소스: 색으로 구분된 Markdown을 한눈에 파악할 수 있습니다
-• 분할: 둘을 나란히 표시하며 어느 쪽에서든 편집할 수 있습니다
+• 분할: 둘을 나란히 표시하고 스크롤도 함께 움직이며, 어느 쪽에서든 편집할 수 있습니다
 
 바로 쓰는 도구
 • 제목, 굵게, 기울임꼴, 밑줄, 취소선, 코드, 인용, 목록, 링크, 표, 구분선
 • 도구 막대, 키보드 단축키가 있는 포맷 메뉴, 컨텍스트 메뉴에서 사용할 수 있습니다
 • 서체를 선택하고 텍스트 크기를 조절할 수 있습니다
+• 도구 막대에 커서 위치의 서식이 표시됩니다
+• Markdown 단축 입력: 줄 맨 앞에 #을 입력하면 제목이 되며, 소스에서도 Return 키로 목록과 인용이 이어집니다
+
+코드 블록
+• 언어별 색상: Swift, Python, JavaScript, TypeScript, JSON, HTML, XML, CSS, SQL, Shell
+• 각 블록의 언어는 레이블에서 선택하므로 구문을 입력할 필요가 없습니다
+• 클릭 한 번으로 블록의 코드를 복사할 수 있습니다
 
 폴더로 작업
 • 폴더를 열어 하위 폴더를 포함한 Markdown 파일을 보고 편집할 수 있습니다
@@ -575,7 +638,7 @@ Amoxtli에는 계정, 광고, 추적이 없습니다. MIT 라이선스의 무료
 **Keywords**
 
 ```text
-md,편집기,쓰기,메모,readme,서식,텍스트,문서,미리보기,폴더
+md,편집기,쓰기,메모,readme,서식,텍스트,문서,미리보기,폴더,코드
 ```
 
 ## 简体中文
@@ -595,7 +658,7 @@ Amoxtli：Markdown 编辑器
 **Promotional Text**
 
 ```text
-书写 Markdown 时可以一个符号都看不到，也可以全部可见。带格式编辑、直接编辑 Markdown，或者并排编辑两者。
+书写 Markdown 时可以一个符号都看不到，也可以全部可见。Swift、Python、JavaScript 等代码按语言着色，每个代码块一键即可拷贝。
 ```
 
 **Description**
@@ -606,12 +669,19 @@ Amoxtli 是一款原生的 Mac Markdown 编辑器，也适合不写代码的人�
 三种编辑方式
 • 格式：像在文字处理器中一样书写，看不到任何 Markdown 符号
 • 源文本：带颜色的 Markdown，一目了然
-• 分栏：两者并排显示，任意一侧都可以编辑
+• 分栏：两者并排显示，滚动同步，任意一侧都可以编辑
 
 随手可用的工具
 • 标题、粗体、斜体、下划线、删除线、代码、引用、列表、链接、表格和分隔线
 • 位于工具栏、带键盘快捷键的“格式”菜单和右键菜单中
 • 选择字体并调整文本大小
+• 工具栏会显示光标所在处的格式
+• Markdown 快捷输入：在行首输入 # 即可创建标题；在源文本中按 Return 也会延续列表和引用
+
+代码块
+• 按语言着色：Swift、Python、JavaScript、TypeScript、JSON、HTML、XML、CSS、SQL 和 Shell
+• 通过代码块的标签选择语言，无需输入语法
+• 一键拷贝代码块中的代码
 
 处理文件夹
 • 打开文件夹即可查看和编辑其中的 Markdown 文件，包括子文件夹中的文件
@@ -638,7 +708,7 @@ Amoxtli 没有账户、广告或跟踪。它免费且开源，采用 MIT 许可�
 **Keywords**
 
 ```text
-md,编辑器,写作,笔记,readme,格式,文本,文档,预览,文件夹
+md,编辑器,写作,笔记,readme,格式,文本,文档,预览,文件夹,代码
 ```
 
 ## 繁體中文
@@ -658,7 +728,7 @@ Amoxtli：Markdown 編輯器
 **Promotional Text**
 
 ```text
-書寫 Markdown 時可以一個符號都看不到，也可以全部可見。帶格式編輯、直接編輯 Markdown，或並排編輯兩者。
+書寫 Markdown 時可以一個符號都看不到，也可以全部可見。Swift、Python、JavaScript 等程式碼依語言上色，每個程式碼區塊一鍵即可拷貝。
 ```
 
 **Description**
@@ -669,12 +739,19 @@ Amoxtli 是一款原生的 Mac Markdown 編輯器，也適合不寫程式的人�
 三種編輯方式
 • 格式：像在文書處理器中一樣書寫，看不到任何 Markdown 符號
 • 原始碼：帶顏色的 Markdown，一目了然
-• 分割：兩者並排顯示，任一側都可以編輯
+• 分割：兩者並排顯示，捲動同步，任一側都可以編輯
 
 隨手可用的工具
 • 標題、粗體、斜體、底線、刪除線、程式碼、引言、列表、連結、表格和分隔線
 • 位於工具列、含鍵盤快速鍵的「格式」選單和右鍵選單中
 • 選擇字體並調整文字大小
+• 工具列會顯示游標所在處的格式
+• Markdown 快速輸入：在行首輸入 # 即可建立標題；在原始碼中按 Return 也會延續列表和引言
+
+程式碼區塊
+• 依語言上色：Swift、Python、JavaScript、TypeScript、JSON、HTML、XML、CSS、SQL 和 Shell
+• 從程式碼區塊的標籤選擇語言，不需輸入語法
+• 一鍵拷貝程式碼區塊中的程式碼
 
 處理檔案夾
 • 打開檔案夾即可檢視和編輯其中的 Markdown 檔案，包括子檔案夾中的檔案
@@ -701,5 +778,5 @@ Amoxtli 沒有帳號、廣告或追蹤。它免費且開放原始碼，採用 MI
 **Keywords**
 
 ```text
-md,編輯器,寫作,筆記,readme,格式,文字,文件,預覽,檔案夾
+md,編輯器,寫作,筆記,readme,格式,文字,文件,預覽,檔案夾,程式碼
 ```
