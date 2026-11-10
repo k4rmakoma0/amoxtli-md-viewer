@@ -123,6 +123,12 @@ Para App Store, crea primero la app en App Store Connect con el mismo bundle ID.
 packaging/release.sh app-store
 ```
 
+Las capturas de App Store (4 escenas en los 11 idiomas, 2880 × 1800) se generan con la app actual y quedan en `docs/app-store/screenshots`. El script compila la app con las escenas por un momento, abre unas ventanas en pantalla durante un minuto y deja el código como estaba. La Terminal necesita permiso de Grabación de pantalla. Los textos de cada idioma están en `packaging/screenshots/compose.swift`.
+
+```bash
+packaging/screenshots/make-screenshots.sh
+```
+
 ## Privacidad
 
 Amoxtli no recopila datos. Ver la [política de privacidad](PRIVACY.md).
