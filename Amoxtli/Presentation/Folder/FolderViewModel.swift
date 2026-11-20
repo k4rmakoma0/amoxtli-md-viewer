@@ -11,7 +11,7 @@ final class FolderViewModel {
     }
 
     private(set) var state: State = .loading
-    private(set) var folderName: String?
+    private(set) var folderURL: URL?
     /// The bookmark in use. It differs from the one passed to `open` when the system refreshed it.
     private(set) var bookmark: Data?
     var selection: MarkdownFile.ID?
@@ -34,6 +34,8 @@ final class FolderViewModel {
         apply(result, for: bookmark)
     }
 
+    var folderName: String? { folderURL?.lastPathComponent }
+
     var selectedFile: MarkdownFile? {
         guard case .loaded(let sections) = state else { return nil }
         return sections.lazy.flatMap(\.files).first { $0.id == selection }
@@ -43,19 +45,19 @@ final class FolderViewModel {
         switch result {
         case .success(let folder):
             scope = folder.scope
-            folderName = folder.name
+            folderURL = folder.url
             self.bookmark = folder.refreshedBookmark ?? bookmark
             state = folder.sections.isEmpty ? .empty : .loaded(folder.sections)
         case .failure(let error):
             scope = nil
-            folderName = nil
+            folderURL = nil
             self.bookmark = nil
             state = .failed(error)
         }
     }
 
     private struct ScannedFolder: Sendable {
-        let name: String
+        let url: URL
         let sections: [MarkdownFolderSection]
         let scope: SecurityScope
         let refreshedBookmark: Data?
@@ -71,7 +73,7 @@ final class FolderViewModel {
             let folder = try bookmarks.resolve(bookmark)
             let scope = SecurityScope(url: folder.url)
             return .success(ScannedFolder(
-                name: folder.url.lastPathComponent,
+                url: folder.url,
                 sections: try scanner.scan(folder.url),
                 scope: scope,
                 refreshedBookmark: folder.refreshedBookmark

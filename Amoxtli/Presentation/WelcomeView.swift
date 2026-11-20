@@ -10,6 +10,7 @@ struct WelcomeView: View {
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
     @Environment(\.newDocument) private var newDocument
+    @Environment(RecentItemsModel.self) private var recents
 
     var body: some View {
         VStack(spacing: 28) {
@@ -30,6 +31,9 @@ struct WelcomeView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                if !recents.items.isEmpty {
+                    recentItemsMenu
+                }
             }
             .controlSize(.extraLarge)
             .frame(width: 260)
@@ -57,6 +61,19 @@ struct WelcomeView: View {
         }
     }
 
+    private var recentItemsMenu: some View {
+        Menu {
+            RecentItemsMenuContent(list: recents.list) {
+                dismissWindow(id: Self.windowID)
+            }
+        } label: {
+            Label("Abrir recientes", systemImage: "clock")
+        }
+        .menuStyle(.button)
+        .buttonStyle(.bordered)
+        .buttonSizing(.flexible)
+    }
+
     private var header: some View {
         VStack(spacing: 6) {
             // AppKit is required here: SwiftUI has no view for the app's own icon.
@@ -74,4 +91,5 @@ struct WelcomeView: View {
 
 #Preview {
     WelcomeView()
+        .environment(RecentItemsModel())
 }

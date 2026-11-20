@@ -4,6 +4,9 @@ import SwiftUI
 /// file list in this mode.
 struct DocumentView: View {
     @ObservedObject var document: MarkdownDocument
+    /// `nil` until a new document is saved.
+    var fileURL: URL?
+    @Environment(RecentItemsModel.self) private var recents
     @State private var viewModel = DocumentViewModel()
     @State private var links = LinkInteractionViewModel()
     @State private var editor = EditorController()
@@ -28,6 +31,11 @@ struct DocumentView: View {
         })
         .focusedSceneValue(\.editorController, editor)
         .focusedSceneValue(\.editorMode, $mode)
+        .onChange(of: fileURL, initial: true) { _, url in
+            if let url {
+                recents.recordFile(at: url)
+            }
+        }
     }
 
     /// A file that couldn't be decoded is explained instead of shown, and can't be edited.
@@ -51,4 +59,5 @@ struct DocumentView: View {
 
 #Preview {
     DocumentView(document: MarkdownDocument(text: "# Amoxtli\n\nEditor de *Markdown*."))
+        .environment(RecentItemsModel())
 }

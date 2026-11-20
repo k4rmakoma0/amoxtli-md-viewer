@@ -9,6 +9,7 @@ struct FolderWindowView: View {
     @State private var viewModel = FolderViewModel()
     @State private var fileEditor = FolderFileEditor()
     @State private var editor = EditorController()
+    @Environment(RecentItemsModel.self) private var recents
     @SceneStorage("editorMode") private var mode = EditorMode.formatted
     @SceneStorage("isSidebarPresented") private var isSidebarPresented = true
 
@@ -26,9 +27,11 @@ struct FolderWindowView: View {
             .task(id: bookmark) {
                 guard let bookmark else { return }
                 await viewModel.open(bookmark)
-                if let current = viewModel.bookmark, current != bookmark {
+                guard let current = viewModel.bookmark, let folder = viewModel.folderURL else { return }
+                if current != bookmark {
                     self.bookmark = current
                 }
+                recents.recordFolder(at: folder, bookmark: current)
             }
             .onDisappear { fileEditor.save() }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in

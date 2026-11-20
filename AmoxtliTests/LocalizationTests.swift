@@ -20,6 +20,24 @@ final class LocalizationTests: XCTestCase {
         }
     }
 
+    func testRecentItemsAndSettingsAreTranslated() throws {
+        let keys = [
+            "Abrir recientes",
+            "Borrar historial",
+            "No se encontró «%@»",
+            "Puede que se haya movido o eliminado. Se quitó de los recientes.",
+            "Abrir el último archivo o carpeta al iniciar",
+            "Si ya no existe, se muestra la ventana de bienvenida.",
+            "Archivos y carpetas recientes",
+        ]
+        for language in languages where language != "es" {
+            let bundle = try bundle(for: language)
+            for key in keys {
+                XCTAssertNotEqual(bundle.localizedString(forKey: key, value: nil, table: nil), key, "\(language): \(key)")
+            }
+        }
+    }
+
     func testSpanishTranslatesTheOneEnglishKey() throws {
         let translated = try bundle(for: "es").localizedString(forKey: "Open Folder…", value: nil, table: nil)
         XCTAssertEqual(translated, "Abrir carpeta…")

@@ -49,6 +49,7 @@ final class FolderViewModelTests: XCTestCase {
         }
         XCTAssertEqual(sections.flatMap(\.files).map(\.name), ["nota.md"])
         XCTAssertEqual(viewModel.folderName, folder.url.lastPathComponent)
+        XCTAssertEqual(viewModel.folderURL, folder.url)
         XCTAssertEqual(viewModel.bookmark, bookmark)
     }
 
@@ -65,6 +66,7 @@ final class FolderViewModelTests: XCTestCase {
         await viewModel.open(bookmark)
         XCTAssertEqual(viewModel.state, .failed(.staleBookmark))
         XCTAssertNil(viewModel.folderName)
+        XCTAssertNil(viewModel.folderURL)
     }
 
     func testUnreadableFolderFails() async throws {

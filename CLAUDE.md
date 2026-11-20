@@ -61,6 +61,17 @@ Editor de Markdown para macOS 27, pensado también para quien no es programador.
 3. **Sin nada que abrir** (inicio o clic en el Dock sin ventanas): ventana de bienvenida (`Window`, `.defaultLaunchBehavior(.presented)`) con Nuevo documento, Abrir archivo… y Abrir carpeta…. Reemplaza el panel de inicio del sistema (`applicationShouldOpenUntitledFile` → `false`), que solo elige archivos. Se cierra al abrir algo.
 - Botón Abrir en el toolbar de ambas ventanas: clic abre archivo, su menú también ofrece carpeta.
 
+## Recientes y arranque
+
+- `RecentList` (`Domain/RecentItems.swift`): últimos 10 archivos y carpetas, el más nuevo primero, sin repetir lugar (URL estandarizada). Mismo nombre en dos items → se agrega la carpeta ("README.md — web"). `RecentItemsStore` lo guarda en UserDefaults como JSON, con security-scoped bookmarks (`RecentItemLocator`, reusa `SecurityScopedBookmarks`). Un bookmark que no resuelve, que lleva a la papelera (`.Trash`/`.Trashes`) o a algo de otro tipo es `.missing`.
+- `RecentItemsModel` (uno para toda la app, del `AppDelegate`, por environment): registra al abrir (`DocumentView` con `fileURL`, `FolderWindowView` tras escanear), localiza (si se movió o el bookmark se renovó, lo actualiza arriba) y mantiene vivo el security scope de los archivos reabiertos para que el documento pueda guardar. Borrar historial también llama a `clearRecentDocuments` del sistema.
+- Menú Abrir recientes (`RecentItemsMenuContent`) en el botón Abrir del toolbar y en la bienvenida (solo si hay recientes). No en el menú Archivo: `DocumentGroup` pone ahí su propio Abrir recientes (solo archivos) y no hay API para quitarlo ni para meterle carpetas; SwiftUI lo vuelve a mostrar aunque se oculte desde AppKit. La lista se pasa como valor desde la vista que tiene el menú: un menú de toolbar solo se actualiza cuando esa vista lo hace. Item que ya no existe → alerta y sale de la lista.
+- Arranque (`LaunchReopening`, decidido en el `init` del delegate antes de que exista una ventana; desactivable en Ajustes, `LaunchPreferences`, encendido por omisión). Último item que ya no existe → sale de la lista y se ve la bienvenida.
+  - Archivo: se abre en `applicationWillFinishLaunching` con `display: true`. SwiftUI elige las ventanas de arranque antes de `applicationDidFinishLaunching` y, si no hay ninguna visible, muestra el panel Abrir; `applicationShouldOpenUntitledFile` no se llama al arrancar. Abierto antes, sin mostrar, o en `didFinishLaunching`, deja ver el panel. Si el arranque abre además un archivo desde Finder, quedan los dos (cerrar el reabierto parpadea y cerraría el de Finder si es el mismo).
+  - Carpeta: el `WindowGroup` de carpetas pasa a `.presented` y su ventana toma el bookmark en `onAppear`.
+  - `.defaultLaunchBehavior` de bienvenida y carpetas lee `isReopening` (observable): en cuanto lo último está en pantalla, o `NSApplication.launchIsDefaultUserInfoKey` dice que el arranque abrió otra cosa (Finder, restauración del sistema), vuelve a lo normal y el clic en el Dock sin ventanas muestra la bienvenida.
+- Ajustes (`Settings`, `SettingsView`): interruptor "Abrir el último archivo o carpeta al iniciar" y Borrar historial.
+
 ## Edición
 
 - Modos por ventana (`@SceneStorage("editorMode")`): **Fuente** (Markdown con resaltado), **Formato** (WYSIWYG editable) y **Dividido** (`HSplitView` con los dos editores, ambos editables). Selector segmentado al inicio del toolbar (junto a Abrir, para que no se vaya al menú »); Visualización > Mostrar fuente / con formato / dividido (⌃⌘1–3).
@@ -148,6 +159,7 @@ Editor de Markdown para macOS 27, pensado también para quien no es programador.
 - `TOCBuilder`: niveles, títulos duplicados con ids únicos, documento sin headings.
 - `LinkClassifier`: https, http, mailto, ancla, esquema desconocido, URL inválida.
 - Default-app checker con `WorkspaceServicing` falso: ya es predeterminada, no lo es, "no volver a preguntar", error del sistema.
+- Recientes y arranque (`RecentList`, `RecentItemsModel`, `RecentItemLocator`, `LaunchReopening`): orden, límite de 10, sin repetir, nombres repetidos, guardar y leer, movido, borrado, papelera, otro tipo; arranque con archivo, con carpeta, sin recientes, desactivado y con el último borrado; Borrar historial limpia también la lista del sistema.
 - ViewModels: estados loading/loaded/error.
 
 ## Open source

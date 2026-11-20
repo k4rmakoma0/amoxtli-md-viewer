@@ -12,12 +12,17 @@ struct OpenToolbarItem: CustomizableToolbarContent {
 
 private struct OpenMenu: View {
     @Environment(\.openWindow) private var openWindow
+    @Environment(RecentItemsModel.self) private var recents
 
     var body: some View {
         Menu("Abrir", systemImage: "folder") {
             Button("Abrir archivo…", systemImage: "doc.text", action: openFile)
             Button("Open Folder…", systemImage: "folder") {
                 openWindow.openChosenFolder()
+            }
+            Divider()
+            Menu("Abrir recientes", systemImage: "clock") {
+                RecentItemsMenuContent(list: recents.list)
             }
         } primaryAction: {
             openFile()
@@ -36,15 +41,24 @@ enum OpenFileAction {
     /// Returns `false` if the person cancels.
     @discardableResult
     static func run() async -> Bool {
-        let controller = NSDocumentController.shared
-        guard let files = await controller.beginOpenPanel(), !files.isEmpty else { return false }
+        guard let files = await NSDocumentController.shared.beginOpenPanel(), !files.isEmpty else { return false }
         for file in files {
-            do {
-                _ = try await controller.openDocument(withContentsOf: file, display: true)
-            } catch {
-                controller.presentError(error)
-            }
+            await open(file)
         }
         return true
+    }
+
+    /// Opens the file in a document window, or brings its window forward if it's already open.
+    /// Returns `false`, after explaining why, if it can't.
+    @discardableResult
+    static func open(_ file: URL) async -> Bool {
+        let controller = NSDocumentController.shared
+        do {
+            _ = try await controller.openDocument(withContentsOf: file, display: true)
+            return true
+        } catch {
+            controller.presentError(error)
+            return false
+        }
     }
 }
